@@ -1,32 +1,23 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { NavigationComponent } from './components/navigation/navigation.component';
-import { trigger, transition, style, animate } from '@angular/animations';
+import { BulkRecipientSelectorComponent } from './components/bulk-recipient-selector/bulk-recipient-selector.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavigationComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    NavigationComponent
+  ],
   template: `
     <app-navigation></app-navigation>
-    <main [@routeAnimations]="prepareRoute(outlet)">
-      <router-outlet #outlet="outlet"></router-outlet>
-    </main>
+    <router-outlet></router-outlet>
   `,
-  animations: [
-    trigger('routeAnimations', [
-      transition('* <=> *', [
-        style({ opacity: 0 }),
-        animate('300ms ease-out', style({ opacity: 1 }))
-      ])
-    ])
-  ]
+  styles: []
 })
 export class AppComponent {
-  title = 'bulk-ordering';
-  
-  prepareRoute(outlet: RouterOutlet) {
-    return outlet?.activatedRouteData?.['animation'] || 'default';
-  }
+  title = 'Device Order Management';
 }

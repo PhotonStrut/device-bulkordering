@@ -103,6 +103,18 @@
             <option *ngFor="let dept of departments" [value]="dept">{{dept}}</option>
           </select>
         </div>
+
+        <!-- Bulk Selection Button - New -->
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <button 
+            (click)="openBulkSelector()" 
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            Bulk Recipient Selection
+          </button>
+        </div>
       </div>
       
       <!-- Selected Recipients Summary -->
@@ -155,6 +167,13 @@
             </svg>
           </button>
         </div>
+
+        <!-- Clear All Button - New -->
+        <div *ngIf="selectedRecipients().length > 1" class="mt-3 text-center">
+          <button (click)="clearAllRecipients()" class="text-sm text-gray-500 hover:text-red-600 transition-colors">
+            Clear All Recipients
+          </button>
+        </div>
       </div>
     </div>
     
@@ -163,17 +182,30 @@
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-xl font-semibold text-gray-800">Available Recipients</h2>
-          <button 
-            (click)="toggleAddNewForm()" 
-            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center">
-            <svg *ngIf="!showAddNewForm()" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <svg *ngIf="showAddNewForm()" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            {{showAddNewForm() ? 'Cancel' : 'Add New Recipient'}}
-          </button>
+          <div class="flex space-x-3">
+            <!-- Hierarchy Selection Button - New -->
+            <button 
+              (click)="openHierarchyView()" 
+              class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center">
+              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              Org Chart
+            </button>
+            
+            <!-- Add New Button -->
+            <button 
+              (click)="toggleAddNewForm()" 
+              class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center">
+              <svg *ngIf="!showAddNewForm()" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <svg *ngIf="showAddNewForm()" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              {{showAddNewForm() ? 'Cancel' : 'Add New Recipient'}}
+            </button>
+          </div>
         </div>
         
         <!-- Add New Recipient Form -->
@@ -316,4 +348,10 @@
       </div>
     </div>
   </div>
+
+  <!-- Bulk Recipient Selector Modal - New -->
+  <app-bulk-recipient-selector
+    (selectionConfirmed)="handleBulkSelection($event)"
+    (modalClosed)="closeBulkSelector()">
+  </app-bulk-recipient-selector>
 </div>

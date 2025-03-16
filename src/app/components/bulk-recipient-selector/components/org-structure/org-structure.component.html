@@ -1,0 +1,130 @@
+<!-- Breadcrumb navigation -->
+<nav class="flex" aria-label="Breadcrumb">
+  <ol class="flex items-center space-x-4">
+    <li>
+      <div>
+        <a (click)="navigateToRoot.emit()" class="text-gray-500 hover:text-gray-700 cursor-pointer">
+          <svg class="h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z" clip-rule="evenodd" />
+          </svg>
+          <span class="sr-only">Home</span>
+        </a>
+      </div>
+    </li>
+    <li *ngFor="let item of organizationPath; let i = index">
+      <div class="flex items-center">
+        <svg class="h-5 w-5 flex-shrink-0 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+        </svg>
+        <a href="#" class="ml-4 text-sm font-medium text-gray-700 hover:text-blue-600">{{ item.name }}</a>
+      </div>
+    </li>
+  </ol>
+</nav>
+
+<!-- Manager selection -->
+<div *ngIf="!currentManagerId">
+  <label for="manager-select" class="block text-sm font-medium text-gray-700 mb-1">Select a Manager</label>
+  <select 
+    id="manager-select" 
+    [(ngModel)]="selectedManagerId"
+    (ngModelChange)="handleManagerChange($event)"
+    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+    <option value="">Select a manager</option>
+    <option *ngFor="let manager of managers" [value]="manager.id">
+      {{ manager.name }} ({{ manager.directReportCount }} direct reports)
+    </option>
+  </select>
+</div>
+
+<!-- Current manager view -->
+<div *ngIf="currentManagerId" class="bg-white border border-gray-200 rounded-md shadow-sm p-4">
+  <!-- Manager header -->
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center">
+      <div class="h-12 w-12 rounded-full flex items-center justify-center mr-3 flex-shrink-0"
+           [ngClass]="getAvatarColorClass(organizationPath.length > 0 ? organizationPath[0].name : '')">
+        <span class="text-lg font-bold">{{ getInitials(organizationPath.length > 0 ? organizationPath[0].name : '') }}</span>
+      </div>
+      <div>
+        <h3 class="text-lg font-medium text-gray-900">{{ organizationPath.length > 0 ? organizationPath[0].name : '' }}</h3>
+      </div>
+    </div>
+    <button 
+      *ngIf="organizationPath.length > 0"
+      type="button" 
+      (click)="navigateUp.emit()" 
+      class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+      <svg class="mr-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414-1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      Up One Level
+    </button>
+  </div>
+  
+  <!-- Team selection section -->
+  <div *ngIf="teams.length > 0" class="mt-6 mb-4">
+    <h4 class="text-sm font-medium text-gray-700 mb-2">Teams</h4>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div 
+        *ngFor="let team of teams"
+        class="flex items-center justify-between border border-gray-200 rounded-md p-3 hover:bg-gray-50 cursor-pointer"
+        (click)="selectTeam.emit(team.id)">
+        <div>
+          <p class="text-sm font-medium text-gray-900">{{ team.name }}</p>
+          <p class="text-xs text-gray-500">{{ team.memberCount }} members</p>
+        </div>
+        <button 
+          class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Select All
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Direct reports section -->
+  <div class="mt-4">
+    <h4 class="text-sm font-medium text-gray-700 mb-2">Direct Reports</h4>
+    <div *ngIf="directReports.length === 0" class="text-center py-6 bg-gray-50 rounded-md">
+      <p class="text-sm text-gray-500">No direct reports found</p>
+    </div>
+    <div *ngIf="directReports.length > 0" class="space-y-2" [@listAnimation]="directReports.length">
+      <div 
+        *ngFor="let report of directReports"
+        class="flex items-center justify-between border border-gray-200 rounded-md p-3 hover:bg-gray-50"
+        [class.bg-blue-50]="isRecipientSelected(report)"
+        [class.border-blue-300]="isRecipientSelected(report)">
+        <div class="flex items-center">
+          <input 
+            type="checkbox" 
+            [checked]="isRecipientSelected(report)"
+            (change)="toggleRecipientSelection.emit(report)"
+            class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+          
+          <div class="ml-3 flex items-center">
+            <div class="h-8 w-8 rounded-full flex items-center justify-center mr-2"
+                 [ngClass]="getAvatarColorClass(report.name)">
+              <span class="text-xs font-bold">{{ getInitials(report.name) }}</span>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">{{ report.name }}</p>
+              <p class="text-xs text-gray-500">{{ report.jobTitle || 'No title' }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex items-center">
+          <button 
+            *ngIf="report.hasDirectReports"
+            type="button" 
+            (click)="navigateToManager.emit(report.id); $event.stopPropagation();"
+            class="text-gray-400 hover:text-gray-500 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

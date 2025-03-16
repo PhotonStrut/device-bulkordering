@@ -325,3 +325,9 @@
     </div>
   </div>
 </div>
+<!-- Fix the optional chain operators with proper null checking -->
+<div *ngIf="order() && order()!.items && order()!.items.length > 0" class="my-2">
+  <p class="text-sm text-gray-600">
+    {{ order()!.items[0] && order()!.items[0].model ? order()!.items[0].model.name : 'Unknown' }}
+  </p>
+</div>

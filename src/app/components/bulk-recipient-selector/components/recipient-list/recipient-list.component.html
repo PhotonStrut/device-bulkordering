@@ -1,0 +1,67 @@
+<!-- Selection header -->
+<div class="flex items-center justify-between mb-4">
+  <div class="flex items-center">
+    <input 
+      type="checkbox" 
+      id="select-all" 
+      [checked]="areAllSelected()" 
+      (change)="selectAll()" 
+      class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+    <label for="select-all" class="ml-2 block text-sm text-gray-700">
+      Select All
+    </label>
+  </div>
+  <span class="text-sm text-gray-500">
+    {{ recipients.length }} recipients found
+  </span>
+</div>
+
+<!-- No results message -->
+<div *ngIf="recipients.length === 0" class="text-center py-12">
+  <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+  <h3 class="mt-2 text-sm font-medium text-gray-900">No recipients found</h3>
+  <p class="mt-1 text-sm text-gray-500">Try adjusting your search criteria or filters.</p>
+</div>
+
+<!-- Recipients list -->
+<div *ngIf="recipients.length > 0" class="space-y-2 max-h-96 overflow-y-auto pr-1" [@listAnimation]="recipients.length">
+  <div 
+    *ngFor="let recipient of recipients"
+    class="flex items-start border border-gray-200 rounded-md p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+    [class.bg-blue-50]="isRecipientSelected(recipient)"
+    [class.border-blue-300]="isRecipientSelected(recipient)"
+    (click)="toggleSelection.emit(recipient)">
+    
+    <input 
+      type="checkbox" 
+      [checked]="isRecipientSelected(recipient)"
+      class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+      (click)="$event.stopPropagation();"
+      (change)="toggleSelection.emit(recipient)">
+    
+    <div class="ml-3 flex-1">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center">
+            <!-- Avatar with initials -->
+            <div class="h-8 w-8 rounded-full flex items-center justify-center mr-2 flex-shrink-0"
+                 [ngClass]="getAvatarColorClass(recipient.name)">
+              <span class="text-xs font-bold">{{ getInitials(recipient.name) }}</span>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">{{ recipient.name }}</p>
+              <p class="text-xs text-gray-500">{{ recipient.email }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-end ml-2">
+          <span class="text-xs font-semibold text-gray-800 bg-gray-100 px-2 py-0.5 rounded">{{ recipient.department }}</span>
+          <span *ngIf="recipient.jobTitle" class="text-xs text-gray-500 mt-1">{{ recipient.jobTitle }}</span>
+          <span *ngIf="recipient.location" class="text-xs text-gray-500">{{ recipient.location }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

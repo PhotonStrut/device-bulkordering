@@ -1,0 +1,84 @@
+<!-- Search field -->
+<div>
+  <label for="search-recipients" class="block text-sm font-medium text-gray-700">Search</label>
+  <div class="mt-1 relative rounded-md shadow-sm">
+    <input 
+      type="text"
+      id="search-recipients" 
+      [formControl]="searchControl"
+      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-2 pl-3 pr-10"
+      placeholder="Search recipients...">
+    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+      <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- Department Filter -->
+<div class="border border-gray-200 rounded-md p-3">
+  <h3 class="font-medium text-gray-700 mb-2">Departments</h3>
+  <div class="space-y-2 max-h-40 overflow-y-auto">
+    <div *ngFor="let dept of departments" class="flex items-center">
+      <input 
+        type="checkbox" 
+        [id]="'dept-' + dept.id" 
+        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        [checked]="isDepartmentSelected(dept.name)"
+        (change)="toggleDepartment.emit(dept.name)">
+      <label [for]="'dept-' + dept.id" class="ml-2 block text-sm text-gray-700">
+        {{ dept.name }} 
+        <span class="text-gray-500 text-xs">({{ dept.headCount }})</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- Locations Filter -->
+<div *ngIf="locations.length > 0" class="border border-gray-200 rounded-md p-3">
+  <h3 class="font-medium text-gray-700 mb-2">Locations</h3>
+  <div class="space-y-2 max-h-32 overflow-y-auto">
+    <div *ngFor="let location of locations" class="flex items-center">
+      <input 
+        type="checkbox" 
+        [id]="'loc-' + location.toLowerCase().replace(' ', '-')" 
+        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        [checked]="isLocationSelected(location)"
+        (change)="toggleLocation.emit(location)">
+      <label [for]="'loc-' + location.toLowerCase().replace(' ', '-')" class="ml-2 block text-sm text-gray-700">
+        {{ location }}
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- Teams Filter -->
+<div *ngIf="teams.length > 0" class="border border-gray-200 rounded-md p-3">
+  <h3 class="font-medium text-gray-700 mb-2">Teams</h3>
+  <div class="space-y-2 max-h-32 overflow-y-auto">
+    <div *ngFor="let team of teams" class="flex items-center">
+      <input 
+        type="checkbox" 
+        [id]="'team-' + team.id" 
+        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        [checked]="isTeamSelected(team.id)"
+        (change)="toggleTeam.emit(team.id)">
+      <label [for]="'team-' + team.id" class="ml-2 block text-sm text-gray-700">
+        {{ team.name }} 
+        <span class="text-gray-500 text-xs">({{ team.memberCount }})</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- Clear filters button -->
+<button 
+  type="button" 
+  (click)="clearAllFilters.emit()" 
+  class="flex items-center justify-center w-full py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+  <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+  </svg>
+  Clear Filters
+</button>

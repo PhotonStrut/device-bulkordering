@@ -1,22 +1,22 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OrderService } from '../../services/order.service';
+import { RecipientService } from '../../services/recipient.service';
 import { animate, style, transition, trigger, stagger, query } from '@angular/animations';
-
-interface Recipient {
-  id: string;
-  name: string;
-  email: string;
-  department: string;
-  avatarUrl?: string;
-}
+import { BulkRecipientSelectorComponent } from '../bulk-recipient-selector/bulk-recipient-selector.component';
+import { Recipient } from '../../models/recipient.model';
 
 @Component({
   selector: 'app-recipient-selection',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    BulkRecipientSelectorComponent
+  ],
   templateUrl: './recipient-selection.component.html',
   animations: [
     trigger('fadeIn', [
@@ -50,6 +50,9 @@ export class RecipientSelectionComponent implements OnInit {
   private router = inject(Router);
   private orderService = inject(OrderService);
   private fb = inject(FormBuilder);
+  private recipientService = inject(RecipientService);
+  
+  @ViewChild(BulkRecipientSelectorComponent) bulkSelector!: BulkRecipientSelectorComponent;
   
   isLoading = signal(true);
   hasError = signal(false);
@@ -257,5 +260,32 @@ export class RecipientSelectionComponent implements OnInit {
     // Simple hash function to consistently pick a color based on name
     const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[hash % colors.length];
+  }
+
+  // Bulk selection methods
+  openBulkSelector(): void {
+    this.bulkSelector.open();
+    // Initialize with currently selected recipients
+    this.bulkSelector.selectedRecipients.set([...this.selectedRecipients()]);
+  }
+  
+  closeBulkSelector(): void {
+    // No action needed - modal handles its own closing
+  }
+  
+  handleBulkSelection(recipients: Recipient[]): void {
+    this.selectedRecipients.set(recipients);
+  }
+  
+  clearAllRecipients(): void {
+    this.selectedRecipients.set([]);
+  }
+  
+  // Org hierarchy view
+  openHierarchyView(): void {
+    this.bulkSelector.open();
+    this.bulkSelector.setActiveTab('organization');
+    // Initialize with currently selected recipients
+    this.bulkSelector.selectedRecipients.set([...this.selectedRecipients()]);
   }
 }

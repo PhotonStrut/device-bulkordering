@@ -1,31 +1,39 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navigation',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './navigation.component.html'
+  templateUrl: './navigation.component.html',
+  styleUrls: ['./navigation.component.css']
 })
 export class NavigationComponent {
   private router = inject(Router);
   
-  // Navigation state
-  isMobileMenuOpen = signal<boolean>(false);
+  isMenuOpen = signal(false);
+  currentRoute = signal('');
   
-  // Toggle mobile menu
-  toggleMobileMenu(): void {
-    this.isMobileMenuOpen.update(val => !val);
+  constructor() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.currentRoute.set(event.urlAfterRedirects);
+      this.isMenuOpen.set(false); // Close mobile menu on navigation
+    });
   }
   
-  // Close mobile menu
-  closeMobileMenu(): void {
-    this.isMobileMenuOpen.set(false);
+  toggleMenu(): void {
+    this.isMenuOpen.update(isOpen => !isOpen);
   }
   
-  // Check if route is active
+  closeMenu(): void {
+    this.isMenuOpen.set(false);
+  }
+  
   isActive(route: string): boolean {
-    return this.router.url.startsWith(route);
+    return this.currentRoute().startsWith(route);
   }
 }

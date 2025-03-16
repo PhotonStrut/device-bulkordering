@@ -1,294 +1,318 @@
-<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-6xl mx-auto">
-    <!-- Header -->
-    <div class="text-center mb-10">
-      <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-        Bulk Device Ordering
-      </h1>
-      <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-        Add recipients for your order
-      </p>
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <header class="mb-8">
+    <div class="flex items-center mb-2">
+      <button (click)="goBack()" class="mr-3 text-gray-500 hover:text-gray-700 transition-colors duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </button>
+      <h1 class="text-3xl font-bold text-gray-900">Assign Recipients</h1>
     </div>
-    
-    <!-- Progress steps -->
-    <div class="mb-8">
-      <ol class="flex items-center justify-center">
-        <li class="relative flex items-center text-gray-500">
-          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-white text-blue-600">
-            ✓
-          </span>
-          <span class="ml-2">Device Selection</span>
-        </li>
-        <li class="flex items-center ml-6 text-blue-600 font-medium">
-          <div class="h-0.5 w-12 bg-blue-600 -ml-2 mr-2"></div>
-          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-blue-100">
-            2
-          </span>
-          <span class="ml-2">Recipients</span>
-        </li>
-        <li class="flex items-center ml-6 text-gray-400">
-          <div class="h-0.5 w-12 bg-gray-300 -ml-2 mr-2"></div>
-          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-gray-300">
-            3
-          </span>
-          <span class="ml-2">Shipping</span>
-        </li>
-        <li class="flex items-center ml-6 text-gray-400">
-          <div class="h-0.5 w-12 bg-gray-300 -ml-2 mr-2"></div>
-          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-gray-300">
-            4
-          </span>
-          <span class="ml-2">Review</span>
-        </li>
-      </ol>
+    <p class="text-gray-600">Select who will receive the ordered devices</p>
+  </header>
+
+  <!-- Progress Steps -->
+  <div class="mb-8">
+    <ol class="flex items-center w-full max-w-3xl mx-auto">
+      <li class="flex items-center text-gray-400">
+        <span class="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full border-2 border-gray-300 shrink-0">
+          1
+        </span>
+        <span class="ml-2">Devices</span>
+        <span class="flex-grow border-t-2 border-gray-200 mx-2"></span>
+      </li>
+      <li class="flex items-center text-blue-600 font-medium">
+        <span class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full border-2 border-blue-600 shrink-0">
+          2
+        </span>
+        <span class="ml-2">Recipients</span>
+        <span class="flex-grow border-t-2 border-blue-200 mx-2"></span>
+      </li>
+      <li class="flex items-center text-gray-400">
+        <span class="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full border-2 border-gray-300 shrink-0">
+          3
+        </span>
+        <span class="ml-2">Shipping</span>
+        <span class="flex-grow border-t-2 border-gray-200 mx-2"></span>
+      </li>
+      <li class="flex items-center text-gray-400">
+        <span class="flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full border-2 border-gray-300 shrink-0">
+          4
+        </span>
+        <span class="ml-2">Review</span>
+      </li>
+    </ol>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="flex flex-col items-center justify-center p-12" [@fadeIn]>
+    <div class="w-16 h-16 border-t-4 border-blue-600 border-solid rounded-full animate-spin"></div>
+    <p class="mt-4 text-gray-600">Loading recipients...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="hasError()" class="bg-red-50 border-l-4 border-red-500 p-4 mb-8" [@fadeIn]>
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <p class="text-red-700">Unable to load recipients data</p>
     </div>
-    
-    <!-- Order summary -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-      <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-        <div>
-          <h3 class="text-lg leading-6 font-medium text-gray-900">
-            Order Summary
-          </h3>
-          <p class="mt-1 max-w-2xl text-sm text-gray-500">
-            Please review your device selection
-          </p>
+    <div class="mt-3">
+      <button class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-md transition-colors duration-200">
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading() && !hasError()" class="flex flex-col lg:flex-row gap-6">
+    <!-- Left Column: Search and Filters -->
+    <div class="lg:w-1/3">
+      <!-- Search and Filters -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <div class="mb-4">
+          <label for="recipient-search" class="block text-sm font-medium text-gray-700 mb-1">Search Recipients</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            <input 
+              id="recipient-search"
+              type="text" 
+              [ngModel]="searchQuery()" 
+              (ngModelChange)="searchQuery.set($event); filterRecipients()" 
+              placeholder="Search by name or email..."
+              class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            >
+          </div>
         </div>
-        <button
-          type="button"
-          class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          (click)="goBack()">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Change Selection
-        </button>
-      </div>
-      <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
-        <dl class="sm:divide-y sm:divide-gray-200">
-          <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt class="text-sm font-medium text-gray-500">
-              Device Type
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {{ orderDetails().deviceType.name }}
-            </dd>
-          </div>
-          <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt class="text-sm font-medium text-gray-500">
-              Model
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-              {{ orderDetails().model.name }} ({{ orderDetails().model.specs }})
-            </dd>
-          </div>
-          
-          <!-- Add quantity form here -->
-          <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt class="text-sm font-medium text-gray-500">
-              Quantity
-            </dt>
-            <dd class="mt-1 sm:mt-0 sm:col-span-2" [formGroup]="quantityForm">
-              <div class="flex items-center">
-                <input 
-                  type="number" 
-                  name="quantity" 
-                  id="quantity" 
-                  formControlName="quantity"
-                  min="1" 
-                  max="100"
-                  class="max-w-[120px] focus:ring-blue-500 focus:border-blue-500 block shadow-sm sm:text-sm border-gray-300 rounded-md mr-3">
-                
-                <span class="text-xs text-gray-500">
-                  (Determines how many recipients you will need to add)
-                </span>
-              </div>
-              <div *ngIf="quantityForm.get('quantity')?.invalid && quantityForm.get('quantity')?.touched" class="text-red-500 text-xs mt-1">
-                Please enter a quantity between 1 and 100.
-              </div>
-            </dd>
-          </div>
-        </dl>
-      </div>
-    </div>
-    
-    <!-- Recipient selection form -->
-    <div class="bg-white shadow sm:rounded-lg">
-      <div class="px-4 py-5 sm:px-6">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">
-          Add Recipients ({{ recipients.controls.length }} of {{ orderDetails().quantity }})
-        </h3>
-        <p class="mt-1 text-sm text-gray-500">
-          Search for employees by ID, first name, or last name
-        </p>
+        
+        <!-- Department Filter -->
+        <div class="mb-4">
+          <label for="department-filter" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+          <select 
+            id="department-filter"
+            [ngModel]="departmentFilter()" 
+            (ngModelChange)="departmentFilter.set($event); filterRecipients()" 
+            class="block w-full border border-gray-300 rounded-md py-2 px-4 focus:ring-blue-500 focus:border-blue-500 bg-white">
+            <option [value]="null">All Departments</option>
+            <option *ngFor="let dept of departments" [value]="dept">{{dept}}</option>
+          </select>
+        </div>
       </div>
       
-      <div class="px-4 sm:px-6 pb-6">
-        <form [formGroup]="recipientForm" class="space-y-6">
-          <!-- Search input with batch processing -->
-          <div class="mt-2">
-            <div class="flex rounded-md shadow-sm">
-              <div class="relative flex-grow focus-within:z-10">
-                <textarea 
-                  formControlName="employeeIdSearch"
-                  placeholder="Search by employee ID, name, or paste multiple IDs separated by commas or new lines..."
-                  class="focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300 min-h-[60px]"></textarea>
-              </div>
+      <!-- Selected Recipients Summary -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-semibold text-gray-800">Selected Recipients</h2>
+          <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+            {{selectedRecipients().length}}
+          </span>
+        </div>
+        
+        <!-- No recipients selected state -->
+        <div *ngIf="selectedRecipients().length === 0" class="text-center py-6 text-gray-500">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <p class="mt-2">No recipients selected</p>
+          <p class="text-sm">Select recipients from the list</p>
+        </div>
+        
+        <!-- Selected recipients list -->
+        <div *ngFor="let recipient of selectedRecipients()" 
+             class="flex justify-between items-center bg-blue-50 p-3 rounded-md" 
+             [@recipientCard]>
+          <div class="flex items-center">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3"
+                 [ngClass]="getColorClass(recipient.name)">
+              <span class="text-xs font-medium">{{getInitials(recipient.name)}}</span>
             </div>
-            
-            <!-- Search/Processing indicators - Enhanced to show failed IDs -->
-            <div class="mt-2 flex justify-between items-center">
-              <div class="flex items-center space-x-2">
-                <!-- Processing/searching indicators -->
-                <div *ngIf="isSearching()" class="text-sm text-gray-500 flex items-center">
-                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Searching...
-                </div>
-                <div *ngIf="processingBatch()" class="text-sm text-gray-500 flex items-center">
-                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing multiple IDs...
-                </div>
-                
-                <!-- Enhanced batch results display -->
-                <div *ngIf="showBatchResults() && !processingBatch()" class="text-sm bg-blue-50 p-3 rounded-md">
-                  <p class="text-blue-700 font-medium">
-                    Added {{ batchResults().success }} recipient(s)
-                  </p>
-                  <div *ngIf="batchResults().failed > 0" class="mt-1">
-                    <p class="text-red-600 font-medium">Failed to add {{ batchResults().failed }} ID(s):</p>
-                    <ul class="mt-1 ml-2 text-xs">
-                      <li *ngFor="let failedId of batchResults().failedIds" class="text-red-500">
-                        "{{ failedId.id }}" - {{ failedId.reason }}
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Action buttons -->
-              <div class="space-x-2">
-                <button 
-                  type="button" 
-                  *ngIf="recipientForm.get('employeeIdSearch')?.value"
-                  class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  (click)="recipientForm.get('employeeIdSearch')?.setValue('')">
-                  Clear
-                </button>
-                <button 
-                  type="button" 
-                  *ngIf="recipientForm.get('employeeIdSearch')?.value?.length >= 3"
-                  class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  (click)="processMultipleIds()"
-                  [disabled]="processingBatch()"
-                  [class.opacity-50]="processingBatch()">
-                  Process Multiple IDs
-                </button>
-              </div>
-            </div>
-            
-            <!-- Search error -->
-            <div *ngIf="searchError()" class="mt-2 text-sm text-red-600">
-              {{ searchError() }}
-            </div>
-            
-            <!-- Search results -->
-            <div *ngIf="searchResults().length > 0" @fadeInOut class="mt-2 bg-white border border-gray-200 rounded-md shadow-sm">
-              <ul class="divide-y divide-gray-200 max-h-60 overflow-y-auto">
-                <li 
-                  *ngFor="let recipient of searchResults()" 
-                  class="px-4 py-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
-                  (click)="addRecipient(recipient, false)">
-                  <div>
-                    <p class="text-sm font-medium text-gray-900">{{ recipient.firstName }} {{ recipient.lastName }}</p>
-                    <p class="text-xs text-gray-500">{{ recipient.employeeId }} | {{ recipient.department }}</p>
-                    <p class="text-xs text-gray-500">{{ recipient.email }}</p>
-                  </div>
-                  <button 
-                    type="button" 
-                    class="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
-                  </button>
-                </li>
-              </ul>
+            <div>
+              <p class="text-sm font-medium text-gray-900">{{recipient.name}}</p>
+              <p class="text-xs text-gray-500">{{recipient.department}}</p>
             </div>
           </div>
-          
-          <!-- Recipients list -->
+          <button (click)="toggleRecipientSelection(recipient)" class="text-blue-700 hover:text-blue-900">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Continue button -->
+        <div *ngIf="selectedRecipients().length > 0" class="border-t border-gray-200 mt-4 pt-4">
+          <button 
+            (click)="continueToShipping()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center justify-center">
+            Continue to Shipping
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Column: Available Recipients -->
+    <div class="lg:w-2/3">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-semibold text-gray-800">Available Recipients</h2>
+          <button 
+            (click)="toggleAddNewForm()" 
+            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center">
+            <svg *ngIf="!showAddNewForm()" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <svg *ngIf="showAddNewForm()" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            {{showAddNewForm() ? 'Cancel' : 'Add New Recipient'}}
+          </button>
+        </div>
+        
+        <!-- Add New Recipient Form -->
+        <div *ngIf="showAddNewForm()" class="mb-8 border-b border-gray-200 pb-6" [@fadeIn]>
+          <form [formGroup]="recipientForm" (ngSubmit)="addNewRecipient()" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  formControlName="name" 
+                  placeholder="Enter full name"
+                  class="block w-full border border-gray-300 rounded-md py-2 px-4 focus:ring-blue-500 focus:border-blue-500"
+                >
+                <p *ngIf="recipientForm.get('name')?.invalid && recipientForm.get('name')?.touched" 
+                   class="mt-1 text-xs text-red-600">
+                  Name is required
+                </p>
+              </div>
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  formControlName="email" 
+                  placeholder="Enter email address"
+                  class="block w-full border border-gray-300 rounded-md py-2 px-4 focus:ring-blue-500 focus:border-blue-500"
+                >
+                <p *ngIf="recipientForm.get('email')?.invalid && recipientForm.get('email')?.touched" 
+                   class="mt-1 text-xs text-red-600">
+                  Valid email is required
+                </p>
+              </div>
+            </div>
+            <div>
+              <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <select 
+                id="department" 
+                formControlName="department"
+                class="block w-full border border-gray-300 rounded-md py-2 px-4 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              >
+                <option value="" disabled selected>Select department</option>
+                <option *ngFor="let dept of departments" [value]="dept">{{dept}}</option>
+                <option value="Other">Other</option>
+              </select>
+              <p *ngIf="recipientForm.get('department')?.invalid && recipientForm.get('department')?.touched" 
+                 class="mt-1 text-xs text-red-600">
+                Department is required
+              </p>
+            </div>
+            <div>
+              <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+              <textarea 
+                id="notes" 
+                formControlName="notes" 
+                rows="2" 
+                placeholder="Add any additional notes"
+                class="block w-full border border-gray-300 rounded-md py-2 px-4 focus:ring-blue-500 focus:border-blue-500"
+              ></textarea>
+            </div>
+            <div class="flex justify-end space-x-3">
+              <button 
+                type="button" 
+                (click)="cancelAddNew()"
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                [disabled]="recipientForm.invalid"
+                [ngClass]="{'opacity-50 cursor-not-allowed': recipientForm.invalid}"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
+              >
+                Add Recipient
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <!-- Empty State -->
+        <div *ngIf="filteredRecipients().length === 0 && !showAddNewForm()" class="text-center py-12" [@fadeIn]>
+          <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <h3 class="mt-2 text-lg font-medium text-gray-900">No recipients found</h3>
+          <p class="mt-1 text-gray-500">Try adjusting your search or add a new recipient.</p>
           <div class="mt-6">
-            <h4 class="text-base font-medium text-gray-900 mb-2">
-              Selected Recipients <span *ngIf="recipients.controls.length > 0">({{ recipients.controls.length }})</span>
-            </h4>
-            
-            <div *ngIf="recipients.controls.length === 0" class="text-sm text-gray-500 italic">
-              No recipients added yet. Search for employees above.
-            </div>
-            
-            <div *ngIf="orderDetails().quantity - recipients.controls.length > 0" class="text-sm text-blue-600 mb-3">
-              Please add {{ orderDetails().quantity - recipients.controls.length }} more recipient(s) to continue.
-            </div>
-            
-            <ul class="space-y-3">
-              <li 
-                *ngFor="let recipientControl of recipients.controls; let i = index" 
-                @slideIn
-                class="bg-gray-50 rounded-md px-4 py-3 flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-900">
-                    {{ recipientControl.get('firstName')?.value }} {{ recipientControl.get('lastName')?.value }}
-                  </p>
-                  <p class="text-xs text-gray-500">
-                    {{ recipientControl.get('employeeId')?.value }} | {{ recipientControl.get('department')?.value }}
-                  </p>
-                  <p class="text-xs text-gray-500">
-                    {{ recipientControl.get('email')?.value }}
-                  </p>
-                </div>
-                <button 
-                  type="button" 
-                  class="inline-flex items-center p-1.5 border border-gray-300 rounded-full text-gray-500 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  (click)="removeRecipient(i)">
-                  <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </li>
-            </ul>
-          </div>
-          
-          <!-- Actions -->
-          <div class="flex justify-between pt-6">
-            <button
-              type="button"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              (click)="goBack()">
-              <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            <button 
+              (click)="toggleAddNewForm()"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Back
-            </button>
-            
-            <button
-              type="button"
-              [disabled]="recipients.controls.length !== orderDetails().quantity"
-              [class.opacity-50]="recipients.controls.length !== orderDetails().quantity"
-              [class.cursor-not-allowed]="recipients.controls.length !== orderDetails().quantity"
-              class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              (click)="continueToShipping()">
-              Continue to Shipping
-              <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
+              Add New Recipient
             </button>
           </div>
-        </form>
+        </div>
+        
+        <!-- Recipients Grid -->
+        <div *ngIf="filteredRecipients().length > 0 && !showAddNewForm()" class="grid grid-cols-1 md:grid-cols-2 gap-4" [@listAnimation]="filteredRecipients().length">
+          <div *ngFor="let recipient of filteredRecipients()" 
+               (click)="toggleRecipientSelection(recipient)"
+               class="border rounded-lg p-4 flex items-center cursor-pointer transition-all duration-200"
+               [class.border-blue-500]="isRecipientSelected(recipient)"
+               [class.bg-blue-50]="isRecipientSelected(recipient)"
+               [class.border-gray-200]="!isRecipientSelected(recipient)"
+               [class.hover:border-blue-300]="!isRecipientSelected(recipient)">
+            
+            <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 flex-shrink-0"
+                 [ngClass]="getColorClass(recipient.name)">
+              <span class="font-medium">{{getInitials(recipient.name)}}</span>
+            </div>
+            
+            <div class="overflow-hidden flex-grow">
+              <p class="font-medium text-gray-900 truncate">{{recipient.name}}</p>
+              <p class="text-sm text-gray-500 truncate">{{recipient.email}}</p>
+              <div class="flex items-center mt-1">
+                <span class="text-xs font-medium bg-gray-100 text-gray-800 px-2 py-0.5 rounded">
+                  {{recipient.department}}
+                </span>
+              </div>
+            </div>
+            
+            <div class="ml-4 flex-shrink-0">
+              <div *ngIf="isRecipientSelected(recipient)" 
+                   class="h-6 w-6 bg-blue-600 rounded-full flex items-center justify-center">
+                <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div *ngIf="!isRecipientSelected(recipient)" 
+                   class="h-6 w-6 border-2 border-gray-300 rounded-full">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

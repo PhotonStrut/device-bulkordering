@@ -1,1 +1,2 @@
-@import "tailwindcss";
+// Fix SASS deprecation warning by replacing @import with @use
+@use "tailwindcss";

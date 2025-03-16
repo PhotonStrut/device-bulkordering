@@ -1,63 +1,97 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { OrderService, SubmittedOrder } from '../../services/order.service';
+import { animate, style, transition, trigger } from '@angular/animations';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './dashboard.component.html'
+  imports: [CommonModule, RouterModule],
+  templateUrl: './dashboard.component.html',
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+    trigger('countAnimation', [
+      transition(':increment', [
+        style({ color: '#4ade80', transform: 'scale(1.2)' }),
+        animate('300ms ease-out', style({ color: 'inherit', transform: 'scale(1)' })),
+      ]),
+    ]),
+  ],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private router = inject(Router);
   private orderService = inject(OrderService);
   
+  isLoading = signal(true);
+  hasError = signal(false);
+  
   // Recent orders - limit to last 5
-  recentOrders = signal<SubmittedOrder[]>(
-    this.orderService.getOrderHistory().slice(0, 5)
-  );
+  recentOrders = signal<SubmittedOrder[]>([]);
   
   // Counts for dashboard stats
-  pendingCount = signal<number>(
-    this.orderService.getOrderHistory().filter(o => o.status === 'Pending Approval').length
-  );
+  pendingCount = signal<number>(0);
+  approvedCount = signal<number>(0);
+  processingCount = signal<number>(0);
+  shippedCount = signal<number>(0);
   
-  approvedCount = signal<number>(
-    this.orderService.getOrderHistory().filter(o => o.status === 'Approved').length
-  );
+  ngOnInit() {
+    // Simulate loading state
+    setTimeout(() => {
+      try {
+        this.loadDashboardData();
+        this.isLoading.set(false);
+      } catch (error) {
+        console.error('Error loading dashboard data', error);
+        this.hasError.set(true);
+        this.isLoading.set(false);
+      }
+    }, 600);
+  }
   
-  processingCount = signal<number>(
-    this.orderService.getOrderHistory().filter(o => o.status === 'Processing').length
-  );
+  loadDashboardData() {
+    const orderHistory = this.orderService.getOrderHistory();
+    
+    this.recentOrders.set(orderHistory.slice(0, 5));
+    this.pendingCount.set(orderHistory.filter(o => o.status === 'Pending Approval').length);
+    this.approvedCount.set(orderHistory.filter(o => o.status === 'Approved').length);
+    this.processingCount.set(orderHistory.filter(o => o.status === 'Processing').length);
+    this.shippedCount.set(orderHistory.filter(o => o.status === 'Shipped').length);
+  }
   
-  shippedCount = signal<number>(
-    this.orderService.getOrderHistory().filter(o => o.status === 'Shipped').length
-  );
+  refreshDashboard() {
+    this.isLoading.set(true);
+    this.hasError.set(false);
+    
+    setTimeout(() => {
+      try {
+        this.loadDashboardData();
+        this.isLoading.set(false);
+      } catch (error) {
+        console.error('Error refreshing dashboard data', error);
+        this.hasError.set(true);
+        this.isLoading.set(false);
+      }
+    }, 600);
+  }
   
   // Navigate to different sections
-  startNewOrder(): void {
+  startNewOrder() {
     this.router.navigate(['/device-selection']);
   }
   
-  viewOrderHistory(): void {
+  viewAllOrders() {
     this.router.navigate(['/history']);
   }
   
-  viewPendingApprovals(): void {
-    this.router.navigate(['/approval']);
-  }
-  
-  // Get status badge classes
-  getStatusClasses(status: string): string {
-    switch (status) {
-      case 'Pending Approval': return 'bg-yellow-100 text-yellow-800';
-      case 'Approved': return 'bg-green-100 text-green-800';
-      case 'Rejected': return 'bg-red-100 text-red-800';
-      case 'Processing': return 'bg-blue-100 text-blue-800';
-      case 'Shipped': return 'bg-purple-100 text-purple-800';
-      case 'Delivered': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  viewOrderDetails(orderId: string) {
+    // Navigate to order details or expand in place
+    this.router.navigate(['/history'], { queryParams: { orderId } });
   }
 }

@@ -5,9 +5,6 @@ import { Router } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { OrderService, OrderDetails, ShippingAddress } from '../../services/order.service';
 
-// Interfaces
-// Removed the Recipient interface as it is already defined in OrderService
-
 @Component({
   selector: 'app-shipping-address',
   standalone: true,
@@ -22,7 +19,23 @@ import { OrderService, OrderDetails, ShippingAddress } from '../../services/orde
       state('collapsed', style({ height: '0', overflow: 'hidden', opacity: 0 })),
       state('expanded', style({ height: '*', opacity: 1 })),
       transition('collapsed <=> expanded', animate('300ms ease-in-out')),
-    ])
+    ]),
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+    trigger('slideInOut', [
+      transition(':enter', [
+        style({ opacity: 0, height: 0, overflow: 'hidden' }),
+        animate('200ms ease-out', style({ opacity: 1, height: '*' })),
+      ]),
+      transition(':leave', [
+        style({ opacity: 1, height: '*', overflow: 'hidden' }),
+        animate('200ms ease-in', style({ opacity: 0, height: 0 })),
+      ]),
+    ]),
   ]
 })
 export class ShippingAddressComponent implements OnInit {
@@ -32,32 +45,28 @@ export class ShippingAddressComponent implements OnInit {
 
   // State signals
   orderDetails = signal<OrderDetails | null>(null);
-  showSavedAddresses = signal<boolean>(false);
-  selectedSavedAddress = signal<number | null>(null);
+  isLoading = signal(true);
+  hasError = signal(false);
+  
+  // UI state
+  showNewAddressForm = signal(false);
+  selectedAddressId = signal<string | null>(null);
+  
+  // Saved addresses
+  savedAddressesSignal = signal<ShippingAddress[]>([]);
 
   // Form
-  shippingForm: FormGroup = this.fb.group({
-    buildingName: ['', Validators.required],
-    floorNumber: ['', Validators.required],
-    roomNumber: ['', Validators.required],
-    streetAddress: ['', Validators.required],
-    city: ['', Validators.required],
-    state: ['', Validators.required],
-    zipCode: ['', [Validators.required, Validators.pattern(/^\d{5}(?:[-\s]\d{4})?$/)]],
-    specialInstructions: [''],
-    contactPerson: ['', Validators.required],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\(\d{3}\) \d{3}-\d{4}$/)]]
-  });
-
-  // Get saved addresses from service
-  savedAddresses: ShippingAddress[] = [];
+  addressForm!: FormGroup;
 
   ngOnInit(): void {
+    this.initForm();
+
     // Get current order from service
     const currentOrder = this.orderService.getCurrentOrder();
     
     // Verify we have device and recipients data
-    if (!currentOrder.deviceType.id || !currentOrder.model.id || currentOrder.recipients.length === 0) {
+    if (!currentOrder.devices || currentOrder.devices.length === 0 || 
+        !currentOrder.recipients || currentOrder.recipients.length === 0) {
       // If not, redirect to recipients
       this.router.navigate(['/recipients']);
       return;
@@ -65,54 +74,114 @@ export class ShippingAddressComponent implements OnInit {
     
     this.orderDetails.set(currentOrder);
     
-    // Load saved addresses from service
-    this.savedAddresses = this.orderService.getSavedAddresses();
-    
-    // Format phone number as user types
-    this.shippingForm.get('contactPhone')?.valueChanges.subscribe(value => {
-      if (!value) return;
-      
-      // Strip all non-numeric characters
-      let numbers = value.replace(/\D/g, '');
-      
-      // Don't format if deleting
-      if (numbers.length > 10) numbers = numbers.slice(0, 10);
-      
-      // Format the phone number
-      if (numbers.length <= 3) {
-        // Do nothing yet
-      } else if (numbers.length <= 6) {
-        numbers = `(${numbers.slice(0, 3)}) ${numbers.slice(3)}`;
-      } else {
-        numbers = `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`;
+    // Simulate loading
+    setTimeout(() => {
+      try {
+        this.loadSavedAddresses();
+        this.isLoading.set(false);
+      } catch (error) {
+        console.error('Error loading addresses', error);
+        this.hasError.set(true);
+        this.isLoading.set(false);
       }
-      
-      // Update the form value without triggering another valueChanges event
-      if (numbers !== value) {
-        this.shippingForm.get('contactPhone')?.setValue(numbers, { emitEvent: false });
-      }
+    }, 600);
+  }
+
+  initForm() {
+    this.addressForm = this.fb.group({
+      name: ['', [Validators.required]],
+      street: ['', [Validators.required]],
+      street2: [''],
+      city: ['', [Validators.required]],
+      state: ['', [Validators.required]],
+      zipCode: ['', [Validators.required, Validators.pattern(/^\d{5}(-\d{4})?$/)]],
+      country: ['United States', [Validators.required]],
+      saveAddress: [true]
     });
   }
 
-  // Toggle saved addresses list
-  toggleSavedAddresses(): void {
-    this.showSavedAddresses.update(value => !value);
-    if (!this.showSavedAddresses()) {
-      this.selectedSavedAddress.set(null);
+  loadSavedAddresses() {
+    // Load addresses from service
+    const savedAddresses = this.orderService.getSavedAddresses();
+    this.savedAddressesSignal.set(savedAddresses);
+    
+    // Select default address
+    const defaultAddress = savedAddresses.find(addr => addr.isDefault);
+    if (defaultAddress && defaultAddress.id) {
+      this.selectedAddressId.set(defaultAddress.id);
     }
   }
 
-  // Select a saved address
-  selectSavedAddress(index: number): void {
-    this.selectedSavedAddress.set(index);
-    const address = this.savedAddresses[index];
-    this.shippingForm.patchValue(address);
+  selectAddress(address: ShippingAddress) {
+    if (address.id) {
+      this.selectedAddressId.set(address.id);
+    }
+    this.showNewAddressForm.set(false);
   }
 
-  // Clear form
-  clearForm(): void {
-    this.shippingForm.reset();
-    this.selectedSavedAddress.set(null);
+  toggleNewAddressForm() {
+    const showForm = this.showNewAddressForm();
+    this.showNewAddressForm.set(!showForm);
+    
+    if (!showForm) {
+      // Clear selection when showing form
+      this.selectedAddressId.set(null);
+    }
+  }
+
+  saveNewAddress() {
+    if (this.addressForm.valid) {
+      const formValue = this.addressForm.value;
+      
+      // Create new address with a guaranteed ID
+      const newId = 'new-' + Date.now();
+      const newAddress: ShippingAddress = {
+        id: newId,
+        name: formValue.name,
+        street: formValue.street,
+        street2: formValue.street2,
+        city: formValue.city,
+        state: formValue.state,
+        zipCode: formValue.zipCode,
+        country: formValue.country
+      };
+      
+      // Add to saved addresses if requested
+      if (formValue.saveAddress) {
+        this.orderService.addSavedAddress(newAddress);
+        this.savedAddressesSignal.update(addresses => [...addresses, newAddress]);
+      }
+      
+      // Select the new address
+      this.selectedAddressId.set(newId);
+      
+      // Hide form after saving
+      this.showNewAddressForm.set(false);
+      
+      // Reset form
+      this.addressForm.reset({ 
+        country: 'United States',
+        saveAddress: true
+      });
+    }
+  }
+
+  cancelNewAddress() {
+    this.showNewAddressForm.set(false);
+    this.addressForm.reset({ 
+      country: 'United States',
+      saveAddress: true
+    });
+    
+    // Select default address if available
+    const defaultAddress = this.savedAddressesSignal().find(addr => addr.isDefault);
+    if (defaultAddress && defaultAddress.id) {
+      this.selectedAddressId.set(defaultAddress.id);
+    }
+  }
+
+  getSelectedAddress(): ShippingAddress | null {
+    return this.savedAddressesSignal().find(addr => addr.id === this.selectedAddressId()) || null;
   }
 
   // Go back to recipients page
@@ -122,28 +191,37 @@ export class ShippingAddressComponent implements OnInit {
 
   // Submit and continue to review
   continueToReview(): void {
-    if (this.shippingForm.invalid) {
-      // Mark all fields as touched to trigger validation messages
-      Object.keys(this.shippingForm.controls).forEach(key => {
-        const control = this.shippingForm.get(key);
-        control?.markAsTouched();
-      });
-      return;
+    const selectedAddress = this.getSelectedAddress();
+    
+    if (selectedAddress && this.orderDetails()) {
+      // Set the shipping address in the order service
+      this.orderService.setShippingAddress(selectedAddress);
+      
+      // Navigate to review page
+      this.router.navigate(['/review']);
     }
+  }
 
-    // Get the shipping address data
-    const shippingAddress: ShippingAddress = this.shippingForm.value;
+  // Add this helper method to get the total recipients
+  getTotalRecipients(): number {
+    return this.orderDetails()?.recipients?.length || 0;
+  }
+
+  // Add this helper method to calculate the total quantity of items
+  getTotalItemQuantity(item: any): number {
+    const recipientCount = this.orderDetails()?.recipients?.length || 0;
+    return item.quantity * recipientCount;
+  }
+
+  // Add this helper to get the grand total of all devices
+  getTotalDeviceCount(): number {
+    // Calculate the total items based on device quantity and recipient count
+    const devices = this.orderDetails()?.devices || [];
+    const recipientCount = this.orderDetails()?.recipients?.length || 0;
     
-    // Update the order details with shipping info
-    const updatedOrderDetails = {
-      ...this.orderDetails()!,
-      shippingAddress
-    };
+    if (recipientCount === 0) return 0;
     
-    // Update order in service
-    this.orderService.updateCurrentOrder(updatedOrderDetails);
-    
-    // Navigate to review
-    this.router.navigate(['/review']);
+    // Sum all devices × their quantity × recipient count
+    return devices.reduce((total: number, item: any) => total + (item.quantity * recipientCount), 0);
   }
 }

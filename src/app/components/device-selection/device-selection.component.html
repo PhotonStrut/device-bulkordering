@@ -44,103 +44,136 @@
     </div>
     
     <!-- Main content with animations -->
-    <div [@pageTransition]="currentStep()" class="mt-12 relative min-h-[500px]">
-      <!-- Device Type Selection -->
-      <div *ngIf="currentStep() === 'type'" class="w-full">
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div 
-            *ngFor="let deviceType of deviceTypes()" 
-            class="bg-white overflow-hidden shadow rounded-lg cursor-pointer transition-all duration-300"
-            [class.ring-2]="deviceType.id === selectedDeviceType()?.id"
-            [class.ring-blue-500]="deviceType.id === selectedDeviceType()?.id"
-            [@cardHover]="hoveredCardId() === deviceType.id ? 'hovered' : 'default'"
-            (mouseenter)="setHoveredCard(deviceType.id)" 
-            (mouseleave)="setHoveredCard(null)"
-            (click)="selectDeviceType(deviceType)">
-            
-            <div class="h-48 overflow-hidden">
-              <img class="h-full w-full object-cover" [src]="deviceType.imageUrl" [alt]="deviceType.name">
-            </div>
-            
-            <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg font-medium text-gray-900">{{ deviceType.name }}</h3>
-              <p class="mt-1 text-sm text-gray-500">{{ deviceType.description }}</p>
-              <div class="mt-4 flex">
-                <span class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
-                  {{ deviceType.models.length }} models available
-                </span>
+    <div class="mt-12 relative min-h-[640px]">
+      <!-- Absolute positioning to prevent layout shift -->
+      <div class="absolute top-0 left-0 w-full transition-opacity duration-300"
+           [class.opacity-100]="currentStep() === 'type'"
+           [class.opacity-0]="currentStep() !== 'type'"
+           [class.z-10]="currentStep() === 'type'"
+           [class.z-0]="currentStep() !== 'type'"
+           [class.pointer-events-none]="currentStep() !== 'type'">
+        
+        <!-- Device Type Selection -->
+        <div [@fadeIn] class="w-full">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div 
+              *ngFor="let deviceType of deviceTypes()" 
+              class="bg-white overflow-hidden shadow rounded-lg cursor-pointer transition-all duration-300"
+              [class.ring-2]="deviceType.id === selectedDeviceType()?.id"
+              [class.ring-blue-500]="deviceType.id === selectedDeviceType()?.id"
+              [@cardHover]="hoveredCardId() === deviceType.id ? 'hovered' : 'default'"
+              (mouseenter)="setHoveredCard(deviceType.id)" 
+              (mouseleave)="setHoveredCard(null)"
+              (click)="selectDeviceType(deviceType)">
+              
+              <div class="h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
+                <!-- Use SVG icon as fallback when image is missing -->
+                <svg *ngIf="!deviceType.imageUrl" class="h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24">
+                  <path [attr.d]="getIconForCategory(deviceType.icon)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <img *ngIf="deviceType.imageUrl" class="h-full w-full object-cover" 
+                    [src]="deviceType.imageUrl" 
+                    [alt]="deviceType.name"
+                    (error)="handleImageError($event)">
               </div>
-            </div>
-            
-            <div class="bg-gray-50 px-4 py-4 sm:px-6">
-              <div class="text-sm">
-                <a class="font-medium text-blue-600 hover:text-blue-500">
-                  Select this device type <span aria-hidden="true">&rarr;</span>
-                </a>
+              
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900">{{ deviceType.name }}</h3>
+                <p class="mt-1 text-sm text-gray-500">{{ deviceType.description }}</p>
+                <div class="mt-4 flex">
+                  <span class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
+                    {{ deviceType.models?.length || 0 }} models available
+                  </span>
+                </div>
+              </div>
+              
+              <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                <div class="text-sm">
+                  <a class="font-medium text-blue-600 hover:text-blue-500">
+                    Select this device type <span aria-hidden="true">&rarr;</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Device Model Selection -->
-      <div *ngIf="currentStep() === 'model'" class="w-full">
-        <div class="flex items-center mb-6">
-          <button 
-            type="button" 
-            class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            (click)="goBackToTypes()">
-            <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-            </svg>
-            Back to device types
-          </button>
-          <h2 class="ml-4 text-xl font-semibold text-gray-900">
-            Select a {{ selectedDeviceType()?.name }} model
-          </h2>
-        </div>
+      <!-- Absolute positioning for model selection -->
+      <div class="absolute top-0 left-0 w-full transition-opacity duration-300"
+           [class.opacity-100]="currentStep() === 'model'"
+           [class.opacity-0]="currentStep() !== 'model'"
+           [class.z-10]="currentStep() === 'model'"
+           [class.z-0]="currentStep() !== 'model'"
+           [class.pointer-events-none]="currentStep() !== 'model'">
         
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-6">
-          <div 
-            *ngFor="let model of availableModels()" 
-            class="bg-white overflow-hidden shadow rounded-lg cursor-pointer" 
-            [class.ring-2]="model.id === selectedModel()?.id" 
-            [class.ring-blue-500]="model.id === selectedModel()?.id"
-            [@cardHover]="hoveredCardId() === model.id ? 'hovered' : 'default'"
-            (mouseenter)="setHoveredCard(model.id)" 
-            (mouseleave)="setHoveredCard(null)"
-            (click)="selectModel(model)">
-            
-            <div class="h-56 overflow-hidden">
-              <img class="h-full w-full object-cover" [src]="model.imageUrl" [alt]="model.name">
-            </div>
-            
-            <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg font-medium text-gray-900">{{ model.name }}</h3>
-              <p class="mt-1 text-sm text-gray-500">{{ model.specs }}</p>
-            </div>
-            
-            <div class="bg-gray-50 px-4 py-4 sm:px-6">
-              <div class="text-sm">
-                <div class="font-medium text-blue-600 hover:text-blue-500">
-                  Select this model <span aria-hidden="true">&rarr;</span>
+        <!-- Device Model Selection -->
+        <div [@fadeIn] class="w-full">
+          <div class="flex items-center mb-6">
+            <button 
+              type="button" 
+              class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              (click)="goBackToTypes()">
+              <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+              </svg>
+              Back to device types
+            </button>
+            <h2 class="ml-4 text-xl font-semibold text-gray-900">
+              Select a {{ selectedDeviceType()?.name }} model
+            </h2>
+          </div>
+          
+          <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-6">
+            <div 
+              *ngFor="let model of availableModels()" 
+              class="bg-white overflow-hidden shadow rounded-lg cursor-pointer" 
+              [class.ring-2]="model.id === selectedModel()?.id" 
+              [class.ring-blue-500]="model.id === selectedModel()?.id"
+              [@cardHover]="hoveredCardId() === model.id ? 'hovered' : 'default'"
+              (mouseenter)="setHoveredCard(model.id)" 
+              (mouseleave)="setHoveredCard(null)"
+              (click)="selectModel(model)">
+              
+              <div class="h-56 overflow-hidden bg-gray-100 flex items-center justify-center">
+                <!-- Generic device icon when image is missing -->
+                <svg *ngIf="!model.imageUrl" class="h-24 w-24 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                        [attr.d]="getIconForCategory(model.categoryId)"/>
+                </svg>
+                <img *ngIf="model.imageUrl" class="h-full w-full object-cover" 
+                    [src]="model.imageUrl" 
+                    [alt]="model.name"
+                    (error)="handleImageError($event)">
+              </div>
+              
+              <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900">{{ model.name }}</h3>
+                <p class="mt-1 text-sm text-gray-500">{{ model.specs }}</p>
+              </div>
+              
+              <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                <div class="text-sm">
+                  <div class="font-medium text-blue-600 hover:text-blue-500">
+                    Select this model <span aria-hidden="true">&rarr;</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Continue button -->
-        <div *ngIf="selectedModel()" @fadeInOut class="mt-10 flex justify-end">
-          <button 
-            type="button" 
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            (click)="continueToRecipients()">
-            Continue to Recipients
-            <svg class="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-          </button>
+          
+          <!-- Continue button -->
+          <div *ngIf="selectedModel()" @fadeInOut class="mt-10 flex justify-end">
+            <button 
+              type="button" 
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              (click)="continueToRecipients()">
+              Continue to Recipients
+              <svg class="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

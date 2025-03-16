@@ -1,136 +1,154 @@
-<nav class="bg-white shadow">
-  <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-    <div class="relative flex justify-between h-16">
-      <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
-        <!-- Mobile menu button -->
-        <button 
-          type="button" 
-          class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-          (click)="toggleMobileMenu()">
-          <span class="sr-only">Open main menu</span>
-          
-          <!-- Icon when menu is closed -->
-          <svg *ngIf="!isMobileMenuOpen()" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          
-          <!-- Icon when menu is open -->
-          <svg *ngIf="isMobileMenuOpen()" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      
-      <div class="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
+<nav class="bg-white shadow-sm border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <!-- Logo and Desktop Nav Links -->
+      <div class="flex">
         <div class="flex-shrink-0 flex items-center">
-          <a routerLink="/dashboard" class="text-lg font-semibold text-blue-600">Device Order Portal</a>
+          <a routerLink="/" class="text-xl font-bold text-blue-600 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd" />
+            </svg>
+            <span>BulkOrder</span>
+          </a>
         </div>
-        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-          <!-- Desktop menu -->
-          <a 
-            routerLink="/dashboard" 
-            [class.text-gray-900]="isActive('/dashboard')"
-            [class.border-blue-500]="isActive('/dashboard')"
-            [class.text-gray-500]="!isActive('/dashboard')"
-            [class.border-transparent]="!isActive('/dashboard')"
-            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+          <a routerLink="/dashboard" 
+             [class.text-blue-600]="isActive('/dashboard')"
+             [class.border-blue-600]="isActive('/dashboard')"
+             [class.border-transparent]="!isActive('/dashboard')"
+             class="px-3 py-2 text-sm font-medium border-b-2 text-gray-700 hover:text-gray-900 transition-colors duration-200">
             Dashboard
           </a>
-          
-          <a 
-            routerLink="/device-selection" 
-            [class.text-gray-900]="isActive('/device-selection')"
-            [class.border-blue-500]="isActive('/device-selection')"
-            [class.text-gray-500]="!isActive('/device-selection')"
-            [class.border-transparent]="!isActive('/device-selection')"
-            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+          <a routerLink="/device-selection" 
+             [class.text-blue-600]="isActive('/device-selection')"
+             [class.border-blue-600]="isActive('/device-selection')"
+             [class.border-transparent]="!isActive('/device-selection')"
+             class="px-3 py-2 text-sm font-medium border-b-2 text-gray-700 hover:text-gray-900 transition-colors duration-200">
             New Order
           </a>
-          
-          <a 
-            routerLink="/history" 
-            [class.text-gray-900]="isActive('/history')"
-            [class.border-blue-500]="isActive('/history')"
-            [class.text-gray-500]="!isActive('/history')"
-            [class.border-transparent]="!isActive('/history')"
-            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+          <a routerLink="/history" 
+             [class.text-blue-600]="isActive('/history')"
+             [class.border-blue-600]="isActive('/history')"
+             [class.border-transparent]="!isActive('/history')"
+             class="px-3 py-2 text-sm font-medium border-b-2 text-gray-700 hover:text-gray-900 transition-colors duration-200">
             Order History
-          </a>
-          
-          <a 
-            routerLink="/approval" 
-            [class.text-gray-900]="isActive('/approval')"
-            [class.border-blue-500]="isActive('/approval')"
-            [class.text-gray-500]="!isActive('/approval')"
-            [class.border-transparent]="!isActive('/approval')"
-            class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-            Approvals
           </a>
         </div>
       </div>
       
-      <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-        <!-- User menu - simplified version -->
-        <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-          <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-medium">
-            JD
+      <!-- Profile and Mobile Menu Button -->
+      <div class="flex items-center">
+        <div class="flex items-center">
+          <!-- User Profile -->
+          <div class="hidden sm:block ml-3 relative">
+            <div>
+              <button type="button" class="flex items-center max-w-xs rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 p-1.5" aria-expanded="false">
+                <span class="sr-only">Open user menu</span>
+                <span class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <span class="font-medium text-sm">JD</span>
+                </span>
+              </button>
+            </div>
           </div>
-          <span class="ml-2 hidden sm:block">John Doe</span>
-        </a>
+        </div>
+        
+        <!-- Mobile menu button -->
+        <div class="sm:hidden ml-4 flex items-center">
+          <button 
+            (click)="toggleMenu()"
+            type="button"
+            class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+            aria-controls="mobile-menu"
+            [attr.aria-expanded]="isMenuOpen()"
+          >
+            <span class="sr-only">{{isMenuOpen() ? 'Close main menu' : 'Open main menu'}}</span>
+            <!-- Icon when menu is closed -->
+            <svg 
+              *ngIf="!isMenuOpen()"
+              class="block h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <!-- Icon when menu is open -->
+            <svg
+              *ngIf="isMenuOpen()"
+              class="block h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Mobile menu -->
-  <div class="sm:hidden" [hidden]="!isMobileMenuOpen()">
-    <div class="pt-2 pb-4 space-y-1">
+  <!-- Mobile menu, show/hide based on menu state. -->
+  <div 
+    class="sm:hidden" 
+    id="mobile-menu" 
+    [class.hidden]="!isMenuOpen()"
+  >
+    <div class="pt-2 pb-3 space-y-1">
       <a 
         routerLink="/dashboard" 
-        (click)="closeMobileMenu()"
-        [class.bg-blue-50]="isActive('/dashboard')"
-        [class.border-blue-500]="isActive('/dashboard')"
-        [class.text-blue-700]="isActive('/dashboard')"
-        [class.border-transparent]="!isActive('/dashboard')"
+        [class.bg-blue-50]="isActive('/dashboard')" 
+        [class.text-blue-700]="isActive('/dashboard')" 
         [class.text-gray-500]="!isActive('/dashboard')"
-        class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+        class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+        [class.border-blue-500]="isActive('/dashboard')"
+        [class.border-transparent]="!isActive('/dashboard')"
+      >
         Dashboard
       </a>
-      
       <a 
         routerLink="/device-selection" 
-        (click)="closeMobileMenu()"
-        [class.bg-blue-50]="isActive('/device-selection')"
-        [class.border-blue-500]="isActive('/device-selection')"
-        [class.text-blue-700]="isActive('/device-selection')"
-        [class.border-transparent]="!isActive('/device-selection')"
+        [class.bg-blue-50]="isActive('/device-selection')" 
+        [class.text-blue-700]="isActive('/device-selection')" 
         [class.text-gray-500]="!isActive('/device-selection')"
-        class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+        class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+        [class.border-blue-500]="isActive('/device-selection')"
+        [class.border-transparent]="!isActive('/device-selection')"
+      >
         New Order
       </a>
-      
       <a 
         routerLink="/history" 
-        (click)="closeMobileMenu()"
-        [class.bg-blue-50]="isActive('/history')"
-        [class.border-blue-500]="isActive('/history')"
-        [class.text-blue-700]="isActive('/history')"
-        [class.border-transparent]="!isActive('/history')"
+        [class.bg-blue-50]="isActive('/history')" 
+        [class.text-blue-700]="isActive('/history')" 
         [class.text-gray-500]="!isActive('/history')"
-        class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+        class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+        [class.border-blue-500]="isActive('/history')"
+        [class.border-transparent]="!isActive('/history')"
+      >
         Order History
       </a>
-      
-      <a 
-        routerLink="/approval" 
-        (click)="closeMobileMenu()"
-        [class.bg-blue-50]="isActive('/approval')"
-        [class.border-blue-500]="isActive('/approval')"
-        [class.text-blue-700]="isActive('/approval')"
-        [class.border-transparent]="!isActive('/approval')"
-        [class.text-gray-500]="!isActive('/approval')"
-        class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-        Approvals
-      </a>
+    </div>
+    
+    <!-- Mobile Profile Section -->
+    <div class="pt-4 pb-3 border-t border-gray-200">
+      <div class="flex items-center px-4">
+        <div class="flex-shrink-0">
+          <span class="inline-flex h-8 w-8 rounded-full bg-blue-100 text-blue-700 items-center justify-center">
+            <span class="font-medium text-sm">JD</span>
+          </span>
+        </div>
+        <div class="ml-3">
+          <div class="text-base font-medium text-gray-800">John Doe</div>
+          <div class="text-sm font-medium text-gray-500">john.doe&#64;example.com</div>
+        </div>
+      </div>
     </div>
   </div>
 </nav>

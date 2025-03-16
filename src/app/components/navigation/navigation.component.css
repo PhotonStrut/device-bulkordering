@@ -1,0 +1,10 @@
+/* Custom styles for navigation transitions */
+#mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+#mobile-menu:not(.hidden) {
+  max-height: 300px;
+}

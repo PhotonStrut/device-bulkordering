@@ -1,321 +1,261 @@
-import { Component, OnInit, inject, signal, computed, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { trigger, transition, style, animate, state } from '@angular/animations';
-import { debounceTime, distinctUntilChanged, switchMap, catchError, of, concatMap, from } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { OrderService, Recipient, OrderDetails } from '../../services/order.service';
-import { injectDestroy } from 'ngxtension/inject-destroy'
+import { OrderService } from '../../services/order.service';
+import { animate, style, transition, trigger, stagger, query } from '@angular/animations';
+
+interface Recipient {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  avatarUrl?: string;
+}
 
 @Component({
   selector: 'app-recipient-selection',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './recipient-selection.component.html',
   animations: [
-    trigger('fadeInOut', [
-      state('void', style({ opacity: 0, transform: 'translateY(10px)' })),
-      transition('void <=> *', animate('300ms ease-in-out')),
-    ]),
-    trigger('slideIn', [
+    trigger('fadeIn', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+    trigger('listAnimation', [
+      transition('* => *', [
+        query(':enter', [
+          style({ opacity: 0, transform: 'translateY(10px)' }),
+          stagger(50, [
+            animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
+      ])
+    ]),
+    trigger('recipientCard', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.9)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' })),
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(20px)' }))
+        animate('150ms ease-in', style({ opacity: 0, transform: 'scale(0.9)' })),
       ])
     ])
   ]
 })
 export class RecipientSelectionComponent implements OnInit {
-  private fb = inject(FormBuilder);
   private router = inject(Router);
   private orderService = inject(OrderService);
-  private destroy = injectDestroy();
-  private cdr = inject(ChangeDetectorRef); // Add change detector reference
-
-  // State signals
-  orderDetails = signal<OrderDetails>(this.orderService.getCurrentOrder());
-
-  searchResults = signal<Recipient[]>([]);
-  isSearching = signal<boolean>(false);
-  searchError = signal<string | null>(null);
+  private fb = inject(FormBuilder);
   
-  // Fix the computed properties to use proper tracking
-  recipientCount = computed(() => {
-    return this.recipients.controls.length;
-  });
+  isLoading = signal(true);
+  hasError = signal(false);
   
-  recipientRemaining = computed(() => {
-    return this.orderDetails().quantity - this.recipientCount();
-  });
-
-  // Form
-  recipientForm: FormGroup = this.fb.group({
-    recipients: this.fb.array([]),
-    employeeIdSearch: ['', [Validators.minLength(3)]]
-  });
-
-  // Add quantity form control
-  quantityForm: FormGroup = this.fb.group({
-    quantity: [1, [Validators.required, Validators.min(1), Validators.max(100)]]
-  });
-
-  // Add properties for batch processing
-  processingBatch = signal<boolean>(false);
-  batchResults = signal<{
-    success: number, 
-    failed: number,
-    failedIds: Array<{id: string, reason: string}>
-  }>({ 
-    success: 0, 
-    failed: 0,
-    failedIds: []
-  });
-  showBatchResults = signal<boolean>(false);
-
-  get recipients(): FormArray {
-    return this.recipientForm.get('recipients') as FormArray;
-  }
-
-  ngOnInit(): void {
-    // Check if we have device and model selected
+  // Recipients data
+  availableRecipients = signal<Recipient[]>([]);
+  filteredRecipients = signal<Recipient[]>([]);
+  selectedRecipients = signal<Recipient[]>([]);
+  
+  // UI state
+  searchQuery = signal<string>('');
+  departmentFilter = signal<string | null>(null);
+  showAddNewForm = signal(false);
+  
+  // Forms
+  recipientForm!: FormGroup;
+  deviceAssignmentForm!: FormGroup;
+  
+  ngOnInit() {
+    this.initializeForms();
+    
+    // Fix this line to use the correct method that exists in the service
     const currentOrder = this.orderService.getCurrentOrder();
-
-    if (!currentOrder.deviceType.id || !currentOrder.model.id) {
-      // If not, redirect to device selection
+    if (!currentOrder.devices || currentOrder.devices.length === 0) {
       this.router.navigate(['/device-selection']);
       return;
     }
-
-    this.orderDetails.set(currentOrder);
-
-    // Initialize quantity form with current value
-    this.quantityForm.get('quantity')?.setValue(currentOrder.quantity || 1);
-
-    // Setup employee ID search
-    this.recipientForm.get('employeeIdSearch')?.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntilDestroyed(this.destroy),
-        switchMap(term => {
-          if (!term || term.length < 3) {
-            this.searchResults.set([]);
-            return of([]);
-          }
-
-          this.isSearching.set(true);
-          this.searchError.set(null);
-
-          // Use the service instead of mock data
-          return this.orderService.searchEmployees(term).then(
-            results => results,
-            error => {
-              this.searchError.set('An error occurred while searching. Please try again.');
-              return [];
-            }
-          );
-        })
-      )
-      .subscribe(results => {
-        this.searchResults.set(results as Recipient[]);
-        this.isSearching.set(false);
-      });
-
-    // Update recipient count when quantity changes
-    this.quantityForm.get('quantity')?.valueChanges.subscribe(value => {
-      if (value && value > 0) {
-        // Update the order with new quantity
-        const updatedOrder = {
-          ...this.orderDetails(),
-          quantity: value
-        };
-        this.orderDetails.set(updatedOrder);
-        this.orderService.updateCurrentOrder(updatedOrder);
-        
-        // Force refresh the UI
-        this.cdr.detectChanges();
+    
+    // Simulate loading of recipients
+    setTimeout(() => {
+      try {
+        this.loadRecipients();
+        this.isLoading.set(false);
+      } catch (error) {
+        console.error('Error loading recipients', error);
+        this.hasError.set(true);
+        this.isLoading.set(false);
       }
+    }, 600);
+  }
+  
+  initializeForms() {
+    // Form for adding a new recipient
+    this.recipientForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      department: ['', Validators.required],
+      notes: ['']
+    });
+    
+    // Form for device assignments
+    this.deviceAssignmentForm = this.fb.group({
+      assignments: this.fb.array([])
     });
   }
-
-  // Add recipient from search results
-  addRecipient(recipient: Recipient, clearSearch: boolean = false): void {
-    // Check if recipient already added
-    const isDuplicate = this.recipients.controls.some(
-      control => control.get('employeeId')?.value === recipient.employeeId
-    );
-
-    if (isDuplicate) {
-      this.searchError.set('This employee has already been added to the recipients list.');
-      return;
-    }
-
-    // Check if we've reached the quantity limit
-    if (this.recipients.controls.length >= this.orderDetails().quantity) {
-      this.searchError.set(`You can only add ${this.orderDetails().quantity} recipients for this order.`);
-      return;
-    }
-
-    // Add recipient to form array
-    this.recipients.push(
-      this.fb.group({
-        employeeId: [recipient.employeeId, Validators.required],
-        firstName: [recipient.firstName, Validators.required],
-        lastName: [recipient.lastName, Validators.required],
-        email: [recipient.email, [Validators.required, Validators.email]],
-        department: [recipient.department, Validators.required]
-      })
-    );
-
-    // Only clear search if explicitly requested
-    if (clearSearch) {
-      this.recipientForm.get('employeeIdSearch')?.setValue('');
-      this.searchResults.set([]);
-    }
-    this.searchError.set(null);
+  
+  loadRecipients() {
+    // This would typically come from a service - using mock data for now
+    const mockRecipients: Recipient[] = [
+      {
+        id: 'r1',
+        name: 'John Smith',
+        email: 'john.smith@company.com',
+        department: 'Engineering'
+      },
+      {
+        id: 'r2',
+        name: 'Emily Johnson',
+        email: 'emily.johnson@company.com',
+        department: 'Marketing'
+      },
+      {
+        id: 'r3',
+        name: 'Michael Brown',
+        email: 'michael.brown@company.com',
+        department: 'Engineering'
+      },
+      {
+        id: 'r4',
+        name: 'Sarah Davis',
+        email: 'sarah.davis@company.com',
+        department: 'HR'
+      },
+      {
+        id: 'r5',
+        name: 'David Wilson',
+        email: 'david.wilson@company.com',
+        department: 'Finance'
+      }
+    ];
     
-    // Force update of the FormArray to trigger change detection
-    this.recipientForm.updateValueAndValidity();
-    this.recipientForm.markAsDirty();
-    
-    // Force Angular to detect the changes
-    this.cdr.detectChanges();
-    
-    console.log('Recipients count after adding:', this.recipients.controls.length);
+    this.availableRecipients.set(mockRecipients);
+    this.filteredRecipients.set(mockRecipients);
   }
-
-  // Process multiple IDs at once (enhanced error feedback)
-  processMultipleIds(): void {
-    const searchInput = this.recipientForm.get('employeeIdSearch')?.value;
-    if (!searchInput) return;
+  
+  filterRecipients() {
+    let filtered = this.availableRecipients();
+    const query = this.searchQuery().toLowerCase();
     
-    // Split by commas, new lines, or spaces
-    const ids = searchInput
-      .split(/[,\n\s]+/)
-      .map((id: string) => id.trim())
-      .filter((id: string) => id.length > 0);
-    
-    if (ids.length === 0) return;
-    
-    // Calculate how many more we can add
-    const remainingSlots = this.orderDetails().quantity - this.recipients.controls.length;
-    if (remainingSlots <= 0) {
-      this.searchError.set(`You can only add ${this.orderDetails().quantity} recipients for this order.`);
-      return;
+    if (query) {
+      filtered = filtered.filter(recipient => 
+        recipient.name.toLowerCase().includes(query) ||
+        recipient.email.toLowerCase().includes(query)
+      );
     }
     
-    // Limit to available slots
-    const idsToProcess = ids.slice(0, remainingSlots);
-    
-    this.processingBatch.set(true);
-    this.searchError.set(null);
-    this.batchResults.set({ success: 0, failed: 0, failedIds: [] });
-    
-    // Process each ID sequentially - fixed by providing type to from operator
-    from(idsToProcess as string[])  // Explicitly type the array for 'from'
-      .pipe(
-        concatMap((id: string) => {
-          return this.orderService.searchEmployees(id as string).then(
-            results => {
-              // If exactly one match found, add it
-              if (results.length === 1) {
-                // Check if already added
-                const isDuplicate = this.recipients.controls.some(
-                  control => control.get('employeeId')?.value === results[0].employeeId
-                );
-                
-                if (!isDuplicate) {
-                  this.addRecipient(results[0], false);
-                  this.batchResults.update(val => ({ ...val, success: val.success + 1 }));
-                  return { id, success: true };
-                } else {
-                  this.batchResults.update(val => ({ 
-                    ...val, 
-                    failed: val.failed + 1,
-                    failedIds: [...val.failedIds, { id, reason: 'already added' }]
-                  }));
-                  return { id, success: false, reason: 'duplicate' };
-                }
-              } else {
-                const reason = results.length > 1 ? 'multiple matches' : 'not found';
-                this.batchResults.update(val => ({ 
-                  ...val, 
-                  failed: val.failed + 1,
-                  failedIds: [...val.failedIds, { id, reason }]
-                }));
-                return { id, success: false, reason };
-              }
-            },
-            error => {
-              this.batchResults.update(val => ({ 
-                ...val, 
-                failed: val.failed + 1,
-                failedIds: [...val.failedIds, { id, reason: 'error' }]
-              }));
-              return { id, success: false, reason: 'error' };
-            }
-          );
-        })
-      )
-      .subscribe({
-        complete: () => {
-          this.processingBatch.set(false);
-          this.showBatchResults.set(true);
-          
-          // Clear input but keep search results visible
-          this.recipientForm.get('employeeIdSearch')?.setValue('');
-          
-          // Auto-hide results after 8 seconds (increased to give more time to see the failures)
-          setTimeout(() => {
-            this.showBatchResults.set(false);
-          }, 8000);
-        }
-      });
-  }
-
-  // Remove recipient from form array
-  removeRecipient(index: number): void {
-    this.recipients.removeAt(index);
-    // Force Angular to detect the changes
-    this.cdr.detectChanges();
-    
-    console.log('Recipients count after removing:', this.recipients.controls.length);
-  }
-
-  // Handle "Continue to Shipping" button click
-  continueToShipping(): void {
-    if (this.recipientForm.invalid) {
-      return;
+    if (this.departmentFilter()) {
+      filtered = filtered.filter(recipient => 
+        recipient.department === this.departmentFilter()
+      );
     }
-
-    // Check if we have the correct number of recipients
-    if (this.recipientCount() !== this.orderDetails().quantity) {
-      this.searchError.set(`Please add exactly ${this.orderDetails().quantity} recipients to continue.`);
-      return;
-    }
-
-    // Get recipients from form controls
-    const recipientValues = this.recipients.controls.map(control => control.value);
     
-    // Update order details with recipients
-    const updatedOrderDetails = {
-      ...this.orderDetails(),
-      recipients: recipientValues
-    };
-
-    // Save to service
-    this.orderService.updateCurrentOrder(updatedOrderDetails);
-
-    // Navigate to shipping
-    this.router.navigate(['/shipping']);
+    this.filteredRecipients.set(filtered);
   }
-
-  // Return to device selection page
-  goBack(): void {
+  
+  // Recipient selection methods
+  toggleRecipientSelection(recipient: Recipient) {
+    const currentSelection = this.selectedRecipients();
+    const isSelected = currentSelection.some(r => r.id === recipient.id);
+    
+    if (isSelected) {
+      this.selectedRecipients.set(currentSelection.filter(r => r.id !== recipient.id));
+    } else {
+      this.selectedRecipients.set([...currentSelection, recipient]);
+    }
+  }
+  
+  isRecipientSelected(recipient: Recipient): boolean {
+    return this.selectedRecipients().some(r => r.id === recipient.id);
+  }
+  
+  // Form methods
+  addNewRecipient() {
+    if (this.recipientForm.valid) {
+      const formValue = this.recipientForm.value;
+      const newRecipient: Recipient = {
+        id: 'new-' + Date.now(),
+        name: formValue.name,
+        email: formValue.email,
+        department: formValue.department
+      };
+      
+      // Add to available recipients
+      this.availableRecipients.update(recipients => [...recipients, newRecipient]);
+      this.filterRecipients();
+      
+      // Select the new recipient
+      this.selectedRecipients.update(recipients => [...recipients, newRecipient]);
+      
+      // Reset form and hide it
+      this.recipientForm.reset();
+      this.showAddNewForm.set(false);
+    }
+  }
+  
+  toggleAddNewForm() {
+    this.showAddNewForm.update(show => !show);
+  }
+  
+  cancelAddNew() {
+    this.recipientForm.reset();
+    this.showAddNewForm.set(false);
+  }
+  
+  // Navigation
+  goBack() {
     this.router.navigate(['/device-selection']);
+  }
+  
+  continueToShipping() {
+    if (this.selectedRecipients().length > 0) {
+      this.orderService.setRecipients(this.selectedRecipients());
+      this.router.navigate(['/shipping']);
+    }
+  }
+  
+  get departments(): string[] {
+    const uniqueDepartments = new Set<string>();
+    this.availableRecipients().forEach(r => uniqueDepartments.add(r.department));
+    return Array.from(uniqueDepartments);
+  }
+  
+  // Helper methods for template
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase();
+  }
+  
+  // Improved color generation for more vibrant avatars
+  getColorClass(name: string): string {
+    const colors = [
+      'bg-blue-100 text-blue-800',
+      'bg-green-100 text-green-800',
+      'bg-yellow-100 text-yellow-800',
+      'bg-purple-100 text-purple-800',
+      'bg-pink-100 text-pink-800',
+      'bg-indigo-100 text-indigo-800',
+      'bg-red-100 text-red-800',
+      'bg-amber-100 text-amber-800'
+    ];
+    
+    // Simple hash function to consistently pick a color based on name
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
   }
 }

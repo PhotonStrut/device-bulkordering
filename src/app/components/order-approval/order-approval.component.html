@@ -81,13 +81,13 @@
                 </span>
               </div>
               <div class="mt-2">
-                <p class="text-sm text-gray-600">{{ order.deviceType }} - {{ order.modelName }}</p>
-                <p class="text-sm text-gray-600">Quantity: {{ order.quantity }}</p>
+                <p class="text-sm text-gray-600">{{ order.items[0]?.model?.name || 'Unknown' }}</p>
+                <p class="text-sm text-gray-600">Quantity: {{ getOrderItemsCount(order) }}</p>
                 <p class="text-sm text-gray-600">
-                  <span class="font-medium">Requester:</span> {{ order.requesterName }}
+                  <span class="font-medium">Requester:</span> {{ order.recipientName || 'N/A' }}
                 </p>
                 <p class="text-sm text-gray-600">
-                  <span class="font-medium">Department:</span> {{ order.department }}
+                  <span class="font-medium">Department:</span> {{ order.department || 'N/A' }}
                 </p>
               </div>
             </li>
@@ -119,13 +119,20 @@
           <!-- Requester info -->
           <div class="px-4 py-5 border-b border-gray-200">
             <h3 class="text-base font-medium text-gray-900 mb-3">Requester Information</h3>
-            <div class="text-sm">
-              <p class="font-medium">
-                {{ selectedOrder()?.recipients?.[0]?.firstName }} {{ selectedOrder()?.recipients?.[0]?.lastName }}
-              </p>
-              <p>Employee ID: {{ selectedOrder()?.recipients?.[0]?.employeeId }}</p>
-              <p>Email: {{ selectedOrder()?.recipients?.[0]?.email }}</p>
-              <p>Department: {{ selectedOrder()?.recipients?.[0]?.department }}</p>
+            <div class="text-sm flex items-center">
+              <!-- Add avatar placeholder for requester -->
+              <div class="h-10 w-10 rounded-full flex items-center justify-center mr-3"
+                   [ngClass]="getAvatarColorClass(selectedOrder()?.recipientName || '')">
+                <span class="font-medium">{{ getInitials(selectedOrder()?.recipientName || '') }}</span>
+              </div>
+              <div>
+                <p class="font-medium">
+                  {{ selectedOrder()?.recipientName || 'Recipient information not available' }}
+                </p>
+                <p>Employee ID: {{ selectedOrder()?.recipientCount }} recipient(s)</p>
+                <p>Email: {{ selectedOrder()?.recipientName }}</p>
+                <p>Department: {{ selectedOrder()?.department || 'N/A' }}</p>
+              </div>
             </div>
           </div>
           
@@ -136,19 +143,19 @@
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <p class="font-medium">Device Type</p>
-                  <p>{{ selectedOrder()?.deviceType?.name }}</p>
+                  <p>{{ selectedOrder()?.items?.[0]?.model?.categoryId || 'N/A' }}</p>
                 </div>
                 <div>
                   <p class="font-medium">Model</p>
-                  <p>{{ selectedOrder()?.model?.name }}</p>
+                  <p>{{ selectedOrder()?.items?.[0]?.model?.name || 'N/A' }}</p>
                 </div>
                 <div>
                   <p class="font-medium">Specifications</p>
-                  <p>{{ selectedOrder()?.model?.specs }}</p>
+                  <p>{{ selectedOrder()?.items?.[0]?.model?.specs?.join(', ') || 'N/A' }}</p>
                 </div>
                 <div>
                   <p class="font-medium">Quantity</p>
-                  <p>{{ selectedOrder()?.quantity }} device(s)</p>
+                  <p>{{ getSelectedOrderItemsCount() }} device(s)</p>
                 </div>
                 <div class="col-span-2">
                   <p class="font-medium">Estimated Delivery</p>
@@ -160,20 +167,17 @@
           
           <!-- Recipients -->
           <div class="px-4 py-5 border-b border-gray-200">
-            <h3 class="text-base font-medium text-gray-900 mb-3">Recipients ({{ selectedOrder()?.recipients?.length || 0 }})</h3>
-            <ul class="divide-y divide-gray-200">
-              <li *ngFor="let recipient of selectedOrder()?.recipients; let i = index" class="py-3 flex items-start">
-                <div class="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                  <span class="text-blue-700 font-medium text-sm">{{ i + 1 }}</span>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ recipient.firstName }} {{ recipient.lastName }}</p>
-                  <p class="text-sm text-gray-500">{{ recipient.employeeId }}</p>
-                  <p class="text-sm text-gray-500">{{ recipient.email }}</p>
-                  <p class="text-sm text-gray-500">{{ recipient.department }}</p>
-                </div>
-              </li>
-            </ul>
+            <h3 class="text-base font-medium text-gray-900 mb-3">Recipients ({{ selectedOrder()?.recipientCount || 0 }})</h3>
+            <div class="py-3 flex items-start">
+              <!-- Add avatar placeholder for recipient -->
+              <div class="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mr-3"
+                   [ngClass]="getAvatarColorClass(selectedOrder()?.recipientName || '')">
+                <span class="text-blue-700 font-medium text-sm">{{ getInitials(selectedOrder()?.recipientName || '') }}</span>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900">{{ selectedOrder()?.recipientName || 'No recipient information' }}</p>
+              </div>
+            </div>
           </div>
           
           <!-- Shipping Address -->
@@ -182,7 +186,7 @@
             <div class="text-sm">
               <p class="font-medium">{{ selectedOrder()?.shippingAddress?.buildingName }}</p>
               <p>Floor {{ selectedOrder()?.shippingAddress?.floorNumber }}, Room {{ selectedOrder()?.shippingAddress?.roomNumber }}</p>
-              <p>{{ selectedOrder()?.shippingAddress?.streetAddress }}</p>
+              <p>{{ selectedOrder()?.shippingAddress?.street }}</p>
               <p>{{ selectedOrder()?.shippingAddress?.city }}, {{ selectedOrder()?.shippingAddress?.state }} {{ selectedOrder()?.shippingAddress?.zipCode }}</p>
               <div class="mt-2">
                 <p class="font-medium">Contact:</p>
@@ -212,7 +216,7 @@
                   [class.cursor-not-allowed]="processingAction()"
                   type="button"
                   class="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  (click)="approveOrder(selectedOrderId()!)">
+                  (click)="approveOrder()">
                   <svg *ngIf="processingAction()" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -258,7 +262,7 @@
                     [class.cursor-not-allowed]="processingAction()"
                     type="button"
                     class="inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    (click)="rejectOrder(selectedOrderId()!)">
+                    (click)="rejectOrder()">
                     <svg *ngIf="processingAction()" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -291,13 +295,8 @@
                   </svg>
                 </div>
                 <div class="ml-3">
-                  <h3 
-                    [ngClass]="{
-                      'text-green-800': selectedOrder()?.status === 'Approved',
-                      'text-red-800': selectedOrder()?.status === 'Rejected'
-                    }" 
-                    class="text-sm font-medium">
-                    This order has been {{ selectedOrder()?.status?.toLowerCase?.() || selectedOrder()?.status }}
+                  <h3 class="text-sm font-medium">
+                    This order has been {{ getOrderStatus(selectedOrder()) }}
                   </h3>
                   <div 
                     [ngClass]="{

@@ -1,0 +1,64 @@
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+  <div class="mb-8 text-center">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Select Device Type</h1>
+    <p class="text-gray-600">Choose the type of device you wish to order. Each order can only contain one device type.</p>
+  </div>
+
+  <!-- Device selection cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    @for (deviceType of deviceTypes(); track deviceType.id) {
+      <div 
+        class="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl border-2"
+        [class.border-blue-500]="isSelected(deviceType)"
+        [class.border-transparent]="!isSelected(deviceType)"
+        (click)="selectDeviceType(deviceType)"
+        [@cardHover]>
+        
+        <div class="p-6">
+          <div class="flex items-center justify-center h-32 mb-4">
+            <img [src]="deviceType.imageUrl" [alt]="deviceType.name" class="max-h-full">
+          </div>
+          <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ deviceType.name }}</h2>
+          <p class="text-gray-600 mb-4">{{ deviceType.description }}</p>
+          
+          <!-- Available options -->
+          <div class="mt-4">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Available Options:</h3>
+            <ul class="text-sm text-gray-600">
+              @for (option of deviceType.options; track option) {
+                <li class="mb-1 flex items-center">
+                  <span class="mr-2">•</span> {{ option }}
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Selected indicator -->
+        @if (isSelected(deviceType)) {
+          <div class="bg-blue-500 text-white p-3 flex justify-between items-center" [@selectionAnimation]>
+            <span>Selected</span>
+            <button 
+              (click)="$event.stopPropagation(); clearSelection()" 
+              class="text-white hover:text-blue-200 focus:outline-none">
+              <span class="sr-only">Clear selection</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Action buttons -->
+  <div class="flex justify-center">
+    <button
+      (click)="proceedToNextStep()"
+      [disabled]="!canProceed()"
+      class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+      Continue to Recipient Selection
+    </button>
+  </div>
+</div>

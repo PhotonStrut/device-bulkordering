@@ -1,0 +1,255 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+        Bulk Device Ordering
+      </h1>
+      <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+        Review and submit your order
+      </p>
+    </div>
+    
+    <!-- Progress steps (only show if order not yet submitted) -->
+    <div *ngIf="!orderSubmitted()" class="mb-8">
+      <ol class="flex items-center justify-center">
+        <li class="relative flex items-center text-gray-500">
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-white text-blue-600">
+            ✓
+          </span>
+          <span class="ml-2">Device Selection</span>
+        </li>
+        <li class="flex items-center ml-6 text-gray-500">
+          <div class="h-0.5 w-12 bg-blue-600 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-white text-blue-600">
+            ✓
+          </span>
+          <span class="ml-2">Recipients</span>
+        </li>
+        <li class="flex items-center ml-6 text-gray-500">
+          <div class="h-0.5 w-12 bg-blue-600 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-white text-blue-600">
+            ✓
+          </span>
+          <span class="ml-2">Shipping</span>
+        </li>
+        <li class="flex items-center ml-6 text-blue-600 font-medium">
+          <div class="h-0.5 w-12 bg-blue-600 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-blue-100">
+            4
+          </span>
+          <span class="ml-2">Review</span>
+        </li>
+      </ol>
+    </div>
+    
+    <!-- Order submitted success message -->
+    <div *ngIf="orderSubmitted() && submittedOrder()" @successAnimation class="text-center mb-8">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+        <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Order Successfully Submitted!</h2>
+      <p class="text-lg text-gray-600 mb-4">Your order has been submitted and is pending approval.</p>
+      <div class="bg-blue-50 py-3 px-4 rounded-md inline-block mb-6">
+        <p class="text-blue-800 font-medium">Order ID: {{ submittedOrder()?.orderId }}</p>
+        <p class="text-blue-600 text-sm">
+          Estimated delivery: {{ submittedOrder()?.estimatedDelivery | date:'mediumDate' }}
+        </p>
+      </div>
+      
+      <div class="flex justify-center space-x-4">
+        <button
+          type="button"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          (click)="viewOrderDetails()">
+          View Order Details
+        </button>
+        <button
+          type="button" 
+          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          (click)="startNewOrder()">
+          Place Another Order
+        </button>
+      </div>
+    </div>
+    
+    <!-- Order Review -->
+    <div *ngIf="!orderSubmitted() && orderDetails()" @fadeInOut>
+      <!-- Order summary -->
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              Order Review
+            </h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">
+              Please review all details before submitting your order
+            </p>
+          </div>
+        </div>
+        
+        <!-- Device Information -->
+        <div class="border-t border-gray-200">
+          <div class="px-4 py-5 sm:px-6 flex justify-between items-center cursor-pointer hover:bg-gray-50" (click)="toggleSection('device')">
+            <h3 class="text-base font-medium text-gray-900">Device Information</h3>
+            <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-800">
+              {{ orderDetails()?.quantity }} device(s)
+            </span>
+          </div>
+          <div [@expandSection]="isSectionExpanded('device') ? 'expanded' : 'collapsed'">
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+              <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Device Type</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.deviceType?.name }}
+                  </dd>
+                </div>
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Model</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.model?.name }}
+                  </dd>
+                </div>
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Specifications</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.model?.specs }}
+                  </dd>
+                </div>
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Quantity</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.quantity }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Recipients -->
+        <div class="border-t border-gray-200">
+          <div class="px-4 py-5 sm:px-6 flex justify-between items-center cursor-pointer hover:bg-gray-50" (click)="toggleSection('recipients')">
+            <h3 class="text-base font-medium text-gray-900">Recipients</h3>
+            <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-0.5 text-sm font-medium text-green-800">
+              {{ orderDetails()?.recipients?.length || 0 }} employee(s)
+            </span>
+          </div>
+          <div [@expandSection]="isSectionExpanded('recipients') ? 'expanded' : 'collapsed'">
+            <div class="border-t border-gray-200 px-4 py-5">
+              <ul class="divide-y divide-gray-200">
+                <li *ngFor="let recipient of orderDetails()?.recipients; let i = index" class="py-4 flex">
+                  <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span class="text-blue-600 font-medium">{{ i + 1 }}</span>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-900">{{ recipient.firstName }} {{ recipient.lastName }}</p>
+                    <p class="text-sm text-gray-500">{{ recipient.employeeId }}</p>
+                    <p class="text-sm text-gray-500">{{ recipient.email }}</p>
+                    <p class="text-sm text-gray-500">{{ recipient.department }}</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Shipping Address -->
+        <div class="border-t border-gray-200">
+          <div class="px-4 py-5 sm:px-6 flex justify-between items-center cursor-pointer hover:bg-gray-50" (click)="toggleSection('shipping')">
+            <h3 class="text-base font-medium text-gray-900">Shipping Address</h3>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path *ngIf="!isSectionExpanded('shipping')" fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              <path *ngIf="isSectionExpanded('shipping')" fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div [@expandSection]="isSectionExpanded('shipping') ? 'expanded' : 'collapsed'">
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+              <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Building</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.shippingAddress?.buildingName }}
+                  </dd>
+                </div>
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Location</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    Floor {{ orderDetails()?.shippingAddress?.floorNumber }}, Room {{ orderDetails()?.shippingAddress?.roomNumber }}
+                  </dd>
+                </div>
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Address</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.shippingAddress?.streetAddress }}<br>
+                    {{ orderDetails()?.shippingAddress?.city }}, {{ orderDetails()?.shippingAddress?.state }} {{ orderDetails()?.shippingAddress?.zipCode }}
+                  </dd>
+                </div>
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Contact</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.shippingAddress?.contactPerson }}<br>
+                    {{ orderDetails()?.shippingAddress?.contactPhone }}
+                  </dd>
+                </div>
+                <div *ngIf="orderDetails()?.shippingAddress?.specialInstructions" class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-500">Special Instructions</dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {{ orderDetails()?.shippingAddress?.specialInstructions }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Approval Note -->
+      <div class="rounded-md bg-yellow-50 p-4 mb-6">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-yellow-800">Approval Required</h3>
+            <div class="mt-2 text-sm text-yellow-700">
+              <p>
+                This order will require approval from your department manager before processing. 
+                You will be notified via email once the order has been approved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Submit button -->
+      <div class="flex justify-between pt-5">
+        <button
+          type="button"
+          class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          (click)="goBack()">
+          Back
+        </button>
+        
+        <button
+          type="button"
+          [disabled]="submitting()"
+          [class.opacity-50]="submitting()"
+          [class.cursor-not-allowed]="submitting()"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          (click)="submitOrder()">
+          <svg *ngIf="submitting()" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ submitting() ? 'Submitting...' : 'Submit Order' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

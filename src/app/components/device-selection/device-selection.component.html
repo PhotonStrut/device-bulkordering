@@ -1,0 +1,148 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+        Bulk Device Ordering
+      </h1>
+      <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+        Select a device type for your order
+      </p>
+    </div>
+    
+    <!-- Progress steps -->
+    <div class="mb-8">
+      <ol class="flex items-center justify-center">
+        <li class="relative flex items-center text-blue-600 font-medium">
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-blue-100">
+            1
+          </span>
+          <span class="ml-2">Device Selection</span>
+        </li>
+        <li class="flex items-center ml-6 text-gray-400">
+          <div class="h-0.5 w-12 bg-gray-300 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-gray-300">
+            2
+          </span>
+          <span class="ml-2">Recipients</span>
+        </li>
+        <li class="flex items-center ml-6 text-gray-400">
+          <div class="h-0.5 w-12 bg-gray-300 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-gray-300">
+            3
+          </span>
+          <span class="ml-2">Shipping</span>
+        </li>
+        <li class="flex items-center ml-6 text-gray-400">
+          <div class="h-0.5 w-12 bg-gray-300 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-gray-300">
+            4
+          </span>
+          <span class="ml-2">Review</span>
+        </li>
+      </ol>
+    </div>
+    
+    <!-- Main content with animations -->
+    <div [@pageTransition]="currentStep()" class="mt-12 relative min-h-[500px]">
+      <!-- Device Type Selection -->
+      <div *ngIf="currentStep() === 'type'" class="w-full">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div 
+            *ngFor="let deviceType of deviceTypes()" 
+            class="bg-white overflow-hidden shadow rounded-lg cursor-pointer transition-all duration-300"
+            [class.ring-2]="deviceType.id === selectedDeviceType()?.id"
+            [class.ring-blue-500]="deviceType.id === selectedDeviceType()?.id"
+            [@cardHover]="hoveredCardId() === deviceType.id ? 'hovered' : 'default'"
+            (mouseenter)="setHoveredCard(deviceType.id)" 
+            (mouseleave)="setHoveredCard(null)"
+            (click)="selectDeviceType(deviceType)">
+            
+            <div class="h-48 overflow-hidden">
+              <img class="h-full w-full object-cover" [src]="deviceType.imageUrl" [alt]="deviceType.name">
+            </div>
+            
+            <div class="px-4 py-5 sm:p-6">
+              <h3 class="text-lg font-medium text-gray-900">{{ deviceType.name }}</h3>
+              <p class="mt-1 text-sm text-gray-500">{{ deviceType.description }}</p>
+              <div class="mt-4 flex">
+                <span class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
+                  {{ deviceType.models.length }} models available
+                </span>
+              </div>
+            </div>
+            
+            <div class="bg-gray-50 px-4 py-4 sm:px-6">
+              <div class="text-sm">
+                <a class="font-medium text-blue-600 hover:text-blue-500">
+                  Select this device type <span aria-hidden="true">&rarr;</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Device Model Selection -->
+      <div *ngIf="currentStep() === 'model'" class="w-full">
+        <div class="flex items-center mb-6">
+          <button 
+            type="button" 
+            class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            (click)="goBackToTypes()">
+            <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Back to device types
+          </button>
+          <h2 class="ml-4 text-xl font-semibold text-gray-900">
+            Select a {{ selectedDeviceType()?.name }} model
+          </h2>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-6">
+          <div 
+            *ngFor="let model of availableModels()" 
+            class="bg-white overflow-hidden shadow rounded-lg cursor-pointer" 
+            [class.ring-2]="model.id === selectedModel()?.id" 
+            [class.ring-blue-500]="model.id === selectedModel()?.id"
+            [@cardHover]="hoveredCardId() === model.id ? 'hovered' : 'default'"
+            (mouseenter)="setHoveredCard(model.id)" 
+            (mouseleave)="setHoveredCard(null)"
+            (click)="selectModel(model)">
+            
+            <div class="h-56 overflow-hidden">
+              <img class="h-full w-full object-cover" [src]="model.imageUrl" [alt]="model.name">
+            </div>
+            
+            <div class="px-4 py-5 sm:p-6">
+              <h3 class="text-lg font-medium text-gray-900">{{ model.name }}</h3>
+              <p class="mt-1 text-sm text-gray-500">{{ model.specs }}</p>
+            </div>
+            
+            <div class="bg-gray-50 px-4 py-4 sm:px-6">
+              <div class="text-sm">
+                <div class="font-medium text-blue-600 hover:text-blue-500">
+                  Select this model <span aria-hidden="true">&rarr;</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Continue button -->
+        <div *ngIf="selectedModel()" @fadeInOut class="mt-10 flex justify-end">
+          <button 
+            type="button" 
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            (click)="continueToRecipients()">
+            Continue to Recipients
+            <svg class="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

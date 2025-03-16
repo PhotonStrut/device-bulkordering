@@ -1,0 +1,430 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+        Bulk Device Ordering
+      </h1>
+      <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+        Add shipping information
+      </p>
+    </div>
+    
+    <!-- Progress steps -->
+    <div class="mb-8">
+      <ol class="flex items-center justify-center">
+        <li class="relative flex items-center text-gray-500">
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-white text-blue-600">
+            ✓
+          </span>
+          <span class="ml-2">Device Selection</span>
+        </li>
+        <li class="flex items-center ml-6 text-gray-500">
+          <div class="h-0.5 w-12 bg-blue-600 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-white text-blue-600">
+            ✓
+          </span>
+          <span class="ml-2">Recipients</span>
+        </li>
+        <li class="flex items-center ml-6 text-blue-600 font-medium">
+          <div class="h-0.5 w-12 bg-blue-600 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-blue-600 bg-blue-100">
+            3
+          </span>
+          <span class="ml-2">Shipping</span>
+        </li>
+        <li class="flex items-center ml-6 text-gray-400">
+          <div class="h-0.5 w-12 bg-gray-300 -ml-2 mr-2"></div>
+          <span class="h-7 w-7 flex items-center justify-center rounded-full border-2 border-gray-300">
+            4
+          </span>
+          <span class="ml-2">Review</span>
+        </li>
+      </ol>
+    </div>
+    
+    <!-- Order summary -->
+    <div *ngIf="orderDetails()" class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Order Summary
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Review your order details
+        </p>
+      </div>
+      <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+        <dl class="sm:divide-y sm:divide-gray-200">
+          <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">
+              Device Type
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              {{ orderDetails()?.deviceType?.name || 'Not specified' }}
+            </dd>
+          </div>
+          <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">
+              Model
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              {{ orderDetails()?.model?.name || 'Not specified' }} ({{ orderDetails()?.model?.specs || 'No specs' }})
+            </dd>
+          </div>
+          <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">
+              Quantity
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              {{ orderDetails()?.quantity }} device(s)
+            </dd>
+          </div>
+          <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">
+              Recipients
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <ul class="divide-y divide-gray-200">
+                <li *ngFor="let recipient of orderDetails()?.recipients; let i = index" class="py-2">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span class="text-blue-600 font-medium">{{ i + 1 }}</span>
+                    </div>
+                    <div>
+                      <p class="font-medium">{{ recipient.firstName }} {{ recipient.lastName }}</p>
+                      <p class="text-gray-500 text-sm">{{ recipient.employeeId }} | {{ recipient.department }}</p>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    
+    <!-- Shipping address form -->
+    <div class="bg-white shadow sm:rounded-lg mb-6">
+      <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            Shipping Address
+          </h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">
+            Enter the delivery location for these devices
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="toggleSavedAddresses()"
+          class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          {{ showSavedAddresses() ? 'Hide Saved Addresses' : 'Use Saved Address' }}
+        </button>
+      </div>
+      
+      <!-- Saved addresses -->
+      <div [@expandCollapse]="showSavedAddresses() ? 'expanded' : 'collapsed'">
+        <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div 
+              *ngFor="let address of savedAddresses; let i = index" 
+              class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 cursor-pointer"
+              [class.ring-2]="selectedSavedAddress() === i"
+              [class.ring-blue-500]="selectedSavedAddress() === i"
+              (click)="selectSavedAddress(i)">
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">{{ address.buildingName }}</p>
+                <p class="text-sm text-gray-500">{{ address.streetAddress }}</p>
+                <p class="text-sm text-gray-500">
+                  {{ address.city }}, {{ address.state }} {{ address.zipCode }}
+                </p>
+                <p class="text-sm text-gray-500 mt-1">
+                  Contact: {{ address.contactPerson }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Form -->
+      <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <form [formGroup]="shippingForm" class="space-y-6">
+          <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+            <!-- Building Name -->
+            <div class="sm:col-span-3">
+              <label for="buildingName" class="block text-sm font-medium text-gray-700">
+                Building Name
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="buildingName" 
+                  formControlName="buildingName"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('buildingName')?.invalid && shippingForm.get('buildingName')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  Building name is required
+                </div>
+              </div>
+            </div>
+            
+            <!-- Floor -->
+            <div class="sm:col-span-1">
+              <label for="floorNumber" class="block text-sm font-medium text-gray-700">
+                Floor
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="floorNumber" 
+                  formControlName="floorNumber"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('floorNumber')?.invalid && shippingForm.get('floorNumber')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  Floor is required
+                </div>
+              </div>
+            </div>
+            
+            <!-- Room Number -->
+            <div class="sm:col-span-2">
+              <label for="roomNumber" class="block text-sm font-medium text-gray-700">
+                Room Number
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="roomNumber" 
+                  formControlName="roomNumber"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('roomNumber')?.invalid && shippingForm.get('roomNumber')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  Room number is required
+                </div>
+              </div>
+            </div>
+            
+            <!-- Street Address -->
+            <div class="sm:col-span-6">
+              <label for="streetAddress" class="block text-sm font-medium text-gray-700">
+                Street Address
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="streetAddress" 
+                  formControlName="streetAddress"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('streetAddress')?.invalid && shippingForm.get('streetAddress')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  Street address is required
+                </div>
+              </div>
+            </div>
+            
+            <!-- City -->
+            <div class="sm:col-span-2">
+              <label for="city" class="block text-sm font-medium text-gray-700">
+                City
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="city" 
+                  formControlName="city"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('city')?.invalid && shippingForm.get('city')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  City is required
+                </div>
+              </div>
+            </div>
+            
+            <!-- State -->
+            <div class="sm:col-span-2">
+              <label for="state" class="block text-sm font-medium text-gray-700">
+                State
+              </label>
+              <div class="mt-1">
+                <select 
+                  id="state" 
+                  formControlName="state"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  <option value="" disabled selected>Select a state</option>
+                  <option value="AL">Alabama</option>
+                  <option value="AK">Alaska</option>
+                  <option value="AZ">Arizona</option>
+                  <option value="AR">Arkansas</option>
+                  <option value="CA">California</option>
+                  <option value="CO">Colorado</option>
+                  <option value="CT">Connecticut</option>
+                  <option value="DE">Delaware</option>
+                  <option value="FL">Florida</option>
+                  <option value="GA">Georgia</option>
+                  <option value="HI">Hawaii</option>
+                  <option value="ID">Idaho</option>
+                  <option value="IL">Illinois</option>
+                  <option value="IN">Indiana</option>
+                  <option value="IA">Iowa</option>
+                  <option value="KS">Kansas</option>
+                  <option value="KY">Kentucky</option>
+                  <option value="LA">Louisiana</option>
+                  <option value="ME">Maine</option>
+                  <option value="MD">Maryland</option>
+                  <option value="MA">Massachusetts</option>
+                  <option value="MI">Michigan</option>
+                  <option value="MN">Minnesota</option>
+                  <option value="MS">Mississippi</option>
+                  <option value="MO">Missouri</option>
+                  <option value="MT">Montana</option>
+                  <option value="NE">Nebraska</option>
+                  <option value="NV">Nevada</option>
+                  <option value="NH">New Hampshire</option>
+                  <option value="NJ">New Jersey</option>
+                  <option value="NM">New Mexico</option>
+                  <option value="NY">New York</option>
+                  <option value="NC">North Carolina</option>
+                  <option value="ND">North Dakota</option>
+                  <option value="OH">Ohio</option>
+                  <option value="OK">Oklahoma</option>
+                  <option value="OR">Oregon</option>
+                  <option value="PA">Pennsylvania</option>
+                  <option value="RI">Rhode Island</option>
+                  <option value="SC">South Carolina</option>
+                  <option value="SD">South Dakota</option>
+                  <option value="TN">Tennessee</option>
+                  <option value="TX">Texas</option>
+                  <option value="UT">Utah</option>
+                  <option value="VT">Vermont</option>
+                  <option value="VA">Virginia</option>
+                  <option value="WA">Washington</option>
+                  <option value="WV">West Virginia</option>
+                  <option value="WI">Wisconsin</option>
+                  <option value="WY">Wyoming</option>
+                </select>
+                <div 
+                  *ngIf="shippingForm.get('state')?.invalid && shippingForm.get('state')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  State is required
+                </div>
+              </div>
+            </div>
+            
+            <!-- Zip Code -->
+            <div class="sm:col-span-2">
+              <label for="zipCode" class="block text-sm font-medium text-gray-700">
+                Zip Code
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="zipCode" 
+                  formControlName="zipCode"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('zipCode')?.invalid && shippingForm.get('zipCode')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  Please enter a valid zip code
+                </div>
+              </div>
+            </div>
+            
+            <!-- Contact Person -->
+            <div class="sm:col-span-3">
+              <label for="contactPerson" class="block text-sm font-medium text-gray-700">
+                Contact Person
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="contactPerson" 
+                  formControlName="contactPerson"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('contactPerson')?.invalid && shippingForm.get('contactPerson')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  Contact person is required
+                </div>
+              </div>
+            </div>
+            
+            <!-- Contact Phone -->
+            <div class="sm:col-span-3">
+              <label for="contactPhone" class="block text-sm font-medium text-gray-700">
+                Contact Phone
+              </label>
+              <div class="mt-1">
+                <input 
+                  type="text" 
+                  id="contactPhone" 
+                  formControlName="contactPhone"
+                  placeholder="(555) 123-4567"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                <div 
+                  *ngIf="shippingForm.get('contactPhone')?.invalid && shippingForm.get('contactPhone')?.touched" 
+                  class="text-red-500 text-sm mt-1">
+                  Please enter a valid phone number
+                </div>
+              </div>
+            </div>
+            
+            <!-- Special Instructions -->
+            <div class="sm:col-span-6">
+              <label for="specialInstructions" class="block text-sm font-medium text-gray-700">
+                Special Instructions (Optional)
+              </label>
+              <div class="mt-1">
+                <textarea 
+                  id="specialInstructions" 
+                  formControlName="specialInstructions"
+                  rows="3"
+                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+              </div>
+              <p class="mt-2 text-sm text-gray-500">
+                Add any specific delivery instructions here.
+              </p>
+            </div>
+          </div>
+          
+          <!-- Form Actions -->
+          <div class="flex justify-between pt-5">
+            <div>
+              <button
+                type="button"
+                class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                (click)="clearForm()">
+                Clear Form
+              </button>
+            </div>
+            <div class="flex space-x-3">
+              <button
+                type="button"
+                class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                (click)="goBack()">
+                Back
+              </button>
+              <button
+                type="submit"
+                [disabled]="shippingForm.invalid"
+                [class.opacity-50]="shippingForm.invalid"
+                [class.cursor-not-allowed]="shippingForm.invalid"
+                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                (click)="continueToReview()">
+                Continue to Review
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

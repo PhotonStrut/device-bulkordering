@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Essentials Bundle Prototype - A/V Command Center</title>
+    
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Apply Inter font globally */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Define base colors inspired by Material Design & #0089C4 */
+            --color-primary: #0089C4; /* User specified */
+            --color-primary-container: #CDE5FF; /* Lighter shade for backgrounds */
+            --color-on-primary: #FFFFFF;
+            --color-on-primary-container: #001C37;
+            --color-secondary: #51606F; /* Neutral blue-gray */
+            --color-on-secondary: #FFFFFF;
+            --color-surface: #F8F9FF; /* Light background */
+            --color-on-surface: #191C20; /* Main text color */
+            --color-on-surface-variant: #42474E; /* Subtext/muted color */
+            --color-outline: #CBD5E1; /* Lighter Border color for pattern */
+            --color-outline-variant: #72777F; /* Borders for elements */
+            --color-surface-container: #EFF1F7; /* Slightly darker surface for pattern fill */
+            --color-selected-bg: #EFF6FF; /* bg-blue-50 equivalent */
+        }
+        /* Apply custom colors using Tailwind arbitrary values where needed */
+        .text-primary { color: var(--color-primary); }
+        .bg-primary { background-color: var(--color-primary); }
+        .text-on-primary { color: var(--color-on-primary); }
+        .bg-primary-container { background-color: var(--color-primary-container); }
+        .text-on-primary-container { color: var(--color-on-primary-container); }
+        .text-secondary { color: var(--color-secondary); }
+        .text-on-surface { color: var(--color-on-surface); }
+        .text-on-surface-variant { color: var(--color-on-surface-variant); }
+        .border-outline { border-color: var(--color-outline); }
+        .border-outline-variant { border-color: var(--color-outline-variant); }
+        .bg-surface { background-color: var(--color-surface); }
+        .bg-surface-container { background-color: var(--color-surface-container); }
+        .ring-primary { --tw-ring-color: var(--color-primary); }
+        .stroke-outline { stroke: var(--color-outline); }
+        .fill-surface-container { fill: var(--color-surface-container); }
+        .bg-selected { background-color: var(--color-selected-bg); } /* Custom class for selected background */
+
+
+        /* Custom styling for checkboxes - now circular */
+        .form-checkbox {
+            appearance: none;
+            padding: 0;
+            print-color-adjust: exact;
+            display: inline-block;
+            vertical-align: middle;
+            background-origin: border-box;
+            user-select: none;
+            flex-shrink: 0;
+            height: 1.25rem; /* h-5 */
+            width: 1.25rem; /* w-5 */
+            color: var(--color-primary);
+            background-color: #fff;
+            border-color: var(--color-outline-variant);
+            border-width: 1px;
+            border-radius: 9999px; /* Make it circular */
+        }
+        .form-checkbox:checked {
+            /* Simple dot for checked state - more like radio */
+             background-image: none; /* Remove default check */
+             border-color: var(--color-primary); /* Primary border */
+             background-color: #fff; /* Keep background white */
+             /* Add a pseudo-element for the inner dot */
+             position: relative;
+        }
+         .form-checkbox:checked::after {
+             content: '';
+             position: absolute;
+             left: 50%;
+             top: 50%;
+             transform: translate(-50%, -50%);
+             width: 0.625rem; /* w-2.5 */
+             height: 0.625rem; /* h-2.5 */
+             border-radius: 9999px;
+             background-color: var(--color-primary);
+         }
+
+        .form-checkbox:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            --tw-ring-inset: var(--tw-empty,/*!*/ /*!*/);
+            --tw-ring-offset-width: 2px;
+            --tw-ring-offset-color: #fff;
+            --tw-ring-color: var(--color-primary);
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        }
+    </style>
+</head>
+<body class="bg-surface">
+
+    
+<div class="relative isolate overflow-hidden bg-surface px-6 py-16 sm:py-24 lg:overflow-visible lg:px-0">
+      
+      
+      <div class="absolute inset-0 -z-10 overflow-hidden">
+        
+        <svg class="absolute left-[max(50%,25rem)] top-0 h-[64rem] w-[128rem] -translate-x-1/2 stroke-outline [mask-image:radial-gradient(64rem_64rem_at_top,white,transparent)]" aria-hidden="true">
+          <defs>
+            <pattern id="e813992c-7d03-4cc4-a2bd-151760b470a0" width="200" height="200" x="50%" y="-1" patternUnits="userSpaceOnUse">
+              <path d="M100 200V.5M.5 .5H200" fill="none" />
+            </pattern>
+          </defs>
+          <svg x="50%" y="-1" class="overflow-visible fill-surface-container">
+            <path d="M-100.5 0h201v201h-201Z M699.5 0h201v201h-201Z M499.5 400h201v201h-201Z M-300.5 600h201v201h-201Z" stroke-width="0" />
+          </svg>
+          <rect width="100%" height="100%" stroke-width="0" fill="url(#e813992c-7d03-4cc4-a2bd-151760b470a0)" />
+        </svg>
+      </div>
+
+      
+      <div class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 lg:mx-0 lg:max-w-none lg:grid-cols-2 lg:items-start lg:gap-y-10">
+        
+        
+        <div class="lg:col-span-2 lg:col-start-1 lg:row-start-1 lg:mx-auto lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">
+          
+          <div class="lg:pr-4">
+            
+            <div class="lg:max-w-lg">
+              <p class="text-base font-semibold leading-7 text-primary">Equipment Bundle</p>
+              <h1 class="mt-2 text-3xl font-bold tracking-tight text-on-surface sm:text-4xl">Essentials (Medium) Bundle</h1>
+              
+              
+              <div class="mt-8">
+                 <h2 class="text-xl font-semibold text-on-surface sr-only"> 
+                    Core Equipment Included
+                 </h2>
+                 
+                 <ul class="space-y-6 text-base leading-7"> 
+                    
+                    <li>
+                        <span class="block font-medium text-on-surface">65-inch Touch Display</span>
+                        <span class="block text-sm text-on-surface-variant italic mb-1">Dell P65240T, Interactive</span>
+                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant">
+                            <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                            <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $3,300.00</span>
+                            <span><strong class="font-semibold text-on-surface">Notes:</strong> Optional, instead of 55".</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="block font-medium text-on-surface">Mobile TV Cart</span>
+                        <span class="block text-sm text-on-surface-variant italic mb-1">Peerless AV SR575M, for 32-75 inch TVs</span>
+                         <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant">
+                            <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                            <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $799.00</span>
+                            <span><strong class="font-semibold text-on-surface">Notes:</strong> Recommended.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="block font-medium text-on-surface">Mini PC</span>
+                        <span class="block text-sm text-on-surface-variant italic mb-1">Dell Optiplex 7010 Micro (Core i5, 32GB RAM, 512GB SSD)</span>
+                         <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant">
+                            <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                            <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $1,250.00</span>
+                            <span><strong class="font-semibold text-on-surface">Notes:</strong> Recommended.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="block font-medium text-on-surface">Wireless Keyboard</span>
+                        <span class="block text-sm text-on-surface-variant italic mb-1">Logitech MX Keys Mini for Business, Graphite</span>
+                         <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant">
+                            <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                            <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $109.99</span>
+                            <span><strong class="font-semibold text-on-surface">Notes:</strong> Recommended.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="block font-medium text-on-surface">Wireless Mouse</span>
+                        <span class="block text-sm text-on-surface-variant italic mb-1">Logitech Signature M650 for Business, Graphite, Medium</span>
+                         <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant">
+                            <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                            <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $39.99</span>
+                            <span><strong class="font-semibold text-on-surface">Notes:</strong> Recommended.</span>
+                        </div>
+                    </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        
+        <div class="-ml-12 -mt-12 p-12 lg:sticky lg:top-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:overflow-hidden">
+          
+          <img 
+            class="w-full max-w-none rounded-xl bg-gray-100 shadow-xl ring-1 ring-gray-400/10 sm:w-[57rem]" 
+            src="https://placehold.co/800x600/0089C4/FFFFFF?text=A/V+Setup+Example" 
+            alt="Placeholder image for A/V setup"
+            onerror="this.onerror=null; this.src='https://placehold.co/800x600/cccccc/FFFFFF?text=Image+Not+Available';"
+            >
+        </div>
+
+        
+        
+        <div class="lg:col-span-2 lg:col-start-1 lg:row-start-2 lg:mx-auto lg:grid lg:w-full lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">
+          
+          <div class="lg:pr-4">
+            
+            <div class="max-w-xl text-base leading-7 text-on-surface-variant lg:max-w-lg">
+                
+                
+                <div class="mt-8 lg:mt-0"> 
+                    <h2 class="text-2xl font-semibold text-on-surface border-b border-outline-variant pb-3 mb-6">
+                        Optional Add-Ons <span class="text-base font-normal text-on-surface-variant">(for remote participants)</span>
+                    </h2>
+                    <p class="text-sm text-secondary mb-6">Select any additional items needed:</p>
+                    
+                    
+                    <div class="rounded-lg border border-outline-variant overflow-hidden bg-white shadow-sm">
+                        <ul id="optional-addons-list"> 
+                            
+                            <li class="flex items-center gap-4 p-4 border-b border-outline-variant last:border-b-0 transition-colors duration-150 cursor-pointer">
+                                <input type="checkbox" id="option-1" class="form-checkbox focus:ring-primary focus:ring-offset-0 flex-shrink-0">
+                                <div class="flex-grow"> 
+                                    <label for="option-1" class="block font-medium text-on-surface cursor-pointer">Speakerphone</label>
+                                    <label for="option-1" class="block text-sm text-on-surface-variant italic mb-1 cursor-pointer">HP Poly Sync 40+ Teams Certified</label>
+                                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant mt-1">
+                                        <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                                        <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $180.00</span>
+                                        <span><strong class="font-semibold text-on-surface">Notes:</strong> If needed to support audio for remote.</span>
+                                    </div>
+                                </div>
+                            </li>
+                             <li class="flex items-center gap-4 p-4 border-b border-outline-variant last:border-b-0 transition-colors duration-150 cursor-pointer">
+                                 <input type="checkbox" id="option-2" class="form-checkbox focus:ring-primary focus:ring-offset-0 flex-shrink-0">
+                                 <div class="flex-grow">
+                                    <label for="option-2" class="block font-medium text-on-surface cursor-pointer">Smartphone Tripod Adapter</label>
+                                    <label for="option-2" class="block text-sm text-on-surface-variant italic mb-1 cursor-pointer">Oben ASPTA-20</label>
+                                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant mt-1">
+                                        <span><strong class="font-semibold text-on-surface">Qty:</strong> 2</span>
+                                        <span><strong class="font-semibold text-on-surface">Est. Unit Cost:</strong> $20.00</span>
+                                        <span><strong class="font-semibold text-on-surface">Notes:</strong> If remote participants need visibility.</span>
+                                    </div>
+                                </div>
+                            </li>
+                             <li class="flex items-center gap-4 p-4 border-b border-outline-variant last:border-b-0 transition-colors duration-150 cursor-pointer">
+                                 <input type="checkbox" id="option-3" class="form-checkbox focus:ring-primary focus:ring-offset-0 flex-shrink-0">
+                                 <div class="flex-grow">
+                                    <label for="option-3" class="block font-medium text-on-surface cursor-pointer">Auxiliary Mounting Arm</label>
+                                    <label for="option-3" class="block text-sm text-on-surface-variant italic mb-1 cursor-pointer">Elgato Solid Arm</label>
+                                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant mt-1">
+                                        <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                                        <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $30.00</span>
+                                        
+                                    </div>
+                                </div>
+                            </li>
+                             <li class="flex items-center gap-4 p-4 border-b border-outline-variant last:border-b-0 transition-colors duration-150 cursor-pointer">
+                                 <input type="checkbox" id="option-4" class="form-checkbox focus:ring-primary focus:ring-offset-0 flex-shrink-0">
+                                 <div class="flex-grow">
+                                    <label for="option-4" class="block font-medium text-on-surface cursor-pointer">Travel Tripod</label>
+                                    <label for="option-4" class="block text-sm text-on-surface-variant italic mb-1 cursor-pointer">Magnus Aluminum (72-inch) with Ball Head</label>
+                                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant mt-1">
+                                        <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                                        <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $90.00</span>
+                                        <span><strong class="font-semibold text-on-surface">Notes:</strong> If remote participants need visibility.</span>
+                                    </div>
+                                </div>
+                            </li>
+                             <li class="flex items-center gap-4 p-4 border-b border-outline-variant last:border-b-0 transition-colors duration-150 cursor-pointer">
+                                 <input type="checkbox" id="option-5" class="form-checkbox focus:ring-primary focus:ring-offset-0 flex-shrink-0">
+                                 <div class="flex-grow">
+                                    <label for="option-5" class="block font-medium text-on-surface cursor-pointer">Tripod Dolly</label>
+                                    <label for="option-5" class="block text-sm text-on-surface-variant italic mb-1 cursor-pointer">Magnus DWF-2 Universal</label>
+                                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-on-surface-variant mt-1">
+                                        <span><strong class="font-semibold text-on-surface">Qty:</strong> 1</span>
+                                        <span><strong class="font-semibold text-on-surface">Est. Cost:</strong> $50.00</span>
+                                        <span><strong class="font-semibold text-on-surface">Notes:</strong> If remote participants need visibility.</span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div> 
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <script>
+        // Add JS for styling list items based on checkbox state
+        document.addEventListener('DOMContentLoaded', () => {
+            const optionalList = document.getElementById('optional-addons-list');
+            if (optionalList) {
+                const optionalCheckboxes = optionalList.querySelectorAll('input[type="checkbox"]');
+
+                optionalCheckboxes.forEach(checkbox => {
+                    // Function to update styling
+                    const updateStyle = (targetCheckbox) => {
+                        const listItem = targetCheckbox.closest('li');
+                        if (!listItem) return;
+
+                        // Define selected classes (using custom properties from <style>)
+                        const selectedBgClass = 'bg-selected'; // Custom property --color-selected-bg
+                        const selectedRingClass = 'ring-2';
+                        const ringColorClass = 'ring-primary'; // Custom property --color-primary
+                        const ringInsetClass = 'ring-inset';
+
+                        if (targetCheckbox.checked) {
+                            listItem.classList.add(selectedBgClass, selectedRingClass, ringColorClass, ringInsetClass);
+                        } else {
+                            listItem.classList.remove(selectedBgClass, selectedRingClass, ringColorClass, ringInsetClass);
+                        }
+                    };
+
+                    // Add change listener to checkbox
+                    checkbox.addEventListener('change', (event) => {
+                        updateStyle(event.target);
+                    });
+
+                    // Add click listener to the list item to toggle the checkbox
+                    const listItem = checkbox.closest('li');
+                    if (listItem) {
+                        listItem.addEventListener('click', (event) => {
+                            // Prevent toggling if the click was directly on the checkbox or a link/button inside
+                             if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'A' && event.target.tagName !== 'BUTTON') {
+                                checkbox.checked = !checkbox.checked;
+                                // Manually trigger the change event to update style
+                                checkbox.dispatchEvent(new Event('change'));
+                            }
+                        });
+                    }
+
+                    // Initial style check in case some boxes are pre-checked (though none are here)
+                    updateStyle(checkbox);
+                });
+            }
+        });
+
+        console.log("A/V Order Page Prototype Updated with new optional list style and Loaded");
+    </script>
+
+</body>
+</html>
